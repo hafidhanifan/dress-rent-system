@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef } from "react";
 
 const categories = [
@@ -152,13 +153,16 @@ export default function CategoriesSection() {
           className="flex items-end w-[18%] lg:w-[20%] pl-6 lg:pl-12 pb-12"
         >
           <div
-            className="overflow-hidden w-full"
+            className="relative overflow-hidden w-full"
             style={{ aspectRatio: "3/4" }}
           >
             <div className="w-full h-full bg-[#c8bdb0] flex items-center justify-center">
-              <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400 rotate-90 whitespace-nowrap">
-                Foto kiri
-              </span>
+              <Image
+                src="/images/categories-section-1.webp"
+                alt="Dress collection"
+                fill
+                className="object-cover object-top"
+              />
             </div>
           </div>
         </div>
@@ -217,13 +221,16 @@ export default function CategoriesSection() {
           className="flex items-start w-[18%] lg:w-[20%] pr-6 lg:pr-12 pt-12"
         >
           <div
-            className="overflow-hidden w-full"
+            className="relative overflow-hidden w-full"
             style={{ aspectRatio: "3/4" }}
           >
             <div className="w-full h-full bg-[#d4bfb0] flex items-center justify-center">
-              <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400 rotate-90 whitespace-nowrap">
-                Foto kanan
-              </span>
+              <Image
+                src="/images/categories-section-2.webp"
+                alt="Dress collection"
+                fill
+                className="object-cover object-top"
+              />
             </div>
           </div>
         </div>
