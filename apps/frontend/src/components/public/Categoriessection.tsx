@@ -150,7 +150,7 @@ export default function CategoriesSection() {
         <div
           data-reveal
           data-delay="0.1"
-          className="flex items-end w-[18%] lg:w-[20%] pl-6 lg:pl-12 pb-12"
+          className="flex items-end w-[18%] lg:w-[20%] pl-6 lg:pl-12 lg:ml-56 pb-12"
         >
           <div
             className="relative overflow-hidden w-full"
@@ -218,7 +218,7 @@ export default function CategoriesSection() {
         <div
           data-reveal
           data-delay="0.2"
-          className="flex items-start w-[18%] lg:w-[20%] pr-6 lg:pr-12 pt-12"
+          className="flex items-start w-[18%] lg:w-[20%] pr-6 lg:pr-12 lg:mr-56 pt-12"
         >
           <div
             className="relative overflow-hidden w-full"
