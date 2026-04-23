@@ -13,6 +13,20 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Quotes section animations */
+@keyframes scroll-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+.animate-scroll-line {
+  animation: scroll-line 1.5s ease-in-out infinite;
+}
+
 /* dark mode */
 /* @media (prefers-color-scheme: dark) {
   :root {
