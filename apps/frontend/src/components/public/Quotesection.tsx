@@ -11,7 +11,7 @@
  */
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform, MotionValue } from "motion/react";
 
 // ─────────────────────────────────────────
 // Teks quote yang akan dianimasikan
@@ -101,7 +101,7 @@ function WordReveal({
   word: string;
   index: number;
   total: number;
-  scrollYProgress: any;
+  scrollYProgress: MotionValue<number>;
 }) {
   /**
    * Hitung kapan kata ini mulai dan selesai muncul
@@ -148,21 +148,19 @@ function WordReveal({
   );
 
   return (
+    /**
+     * Font serif besar, clamp untuk responsive:
+     * - min: 2rem  (mobile kecil)
+     * - ideal: 4.5vw
+     * - max: 4.5rem (desktop besar)
+     */
     <motion.span
-      style={{ opacity, filter }}
-      /**
-       * Font serif besar, clamp untuk responsive:
-       * - min: 2rem  (mobile kecil)
-       * - ideal: 4.5vw
-       * - max: 4.5rem (desktop besar)
-       */
       className="font-serif font-[300] text-stone-800 leading-[1.15] tracking-[-0.01em]"
       style={{
         opacity,
         filter,
         fontSize: "clamp(1.4rem, 3.2vw, 3.4rem)",
-        // Italic untuk kata tertentu supaya lebih dramatis
-        fontStyle: ["story", "grace,", "magic."].includes(word)
+        fontStyle: ["story", "grace,", "remembered."].includes(word)
           ? "italic"
           : "normal",
       }}
@@ -180,7 +178,7 @@ function AuthorReveal({
   scrollYProgress,
 }: {
   author: string;
-  scrollYProgress: any;
+  scrollYProgress: MotionValue<number>;
 }) {
   // Muncul di 85–95% progress (setelah semua kata tampil)
   const opacity = useTransform(scrollYProgress, [0.82, 0.95], [0, 1]);
@@ -200,7 +198,11 @@ function AuthorReveal({
 // Komponen: indikator scroll bawah
 // Menghilang saat sudah hampir selesai
 // ─────────────────────────────────────────
-function ScrollIndicator({ scrollYProgress }: { scrollYProgress: any }) {
+function ScrollIndicator({
+  scrollYProgress,
+}: {
+  scrollYProgress: MotionValue<number>;
+}) {
   // Hilang di 85% progress
   const opacity = useTransform(
     scrollYProgress,
