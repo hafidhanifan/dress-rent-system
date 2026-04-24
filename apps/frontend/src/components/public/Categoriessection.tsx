@@ -63,7 +63,10 @@ export default function CategoriesSection() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="w-full bg-[#f0ebe3] overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="w-full h-screen flex flex-col justify-center bg-[#f0ebe3] overflow-hidden"
+    >
       {/* ══════════════════════════
           MOBILE  (<md)
       ══════════════════════════ */}
