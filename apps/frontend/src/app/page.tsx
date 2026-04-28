@@ -4,6 +4,7 @@ import CategoriesSection from "@/components/public/Categoriessection";
 import QuoteSection from "@/components/public/Quotesection";
 import SpotlightSection from "@/components/public/Spotlightsection";
 import WhyChooseSection from "@/components/public/Whychoose";
+import Footer from "@/components/public/Footer";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <CategoriesSection />
       <SpotlightSection />
       <WhyChooseSection />
+      <Footer />
     </main>
   );
 }
