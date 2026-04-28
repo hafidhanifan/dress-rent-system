@@ -16,6 +16,7 @@ export default function Home() {
       <SpotlightSection />
       <WhyChooseSection />
       <Footer />
+      {/* test */}
     </main>
   );
 }
