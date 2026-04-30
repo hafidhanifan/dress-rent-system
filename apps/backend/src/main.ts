@@ -1,22 +1,31 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  /**
+   * ValidationPipe → aktifkan validasi DTO secara global
+   * Tanpa ini, decorator @IsEmail, @IsNotEmpty, dll tidak akan jalan
+   *
+   * whitelist: true → hapus field yang tidak ada di DTO (keamanan)
+   * forbidNonWhitelisted: true → error jika ada field tidak dikenal
+   */
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // untuk menghapus field yang tidak ada di DTO
-      forbidNonWhitelisted: true, // error jika field tidak dikenal
-      transform: true, // otomatis konversi tipe data
+      whitelist: true,
+      forbidNonWhitelisted: true,
     }),
   );
 
-  //izinkan Next.js untuk mengakses backend atau izinkan request dari front end
-  app.enableCors({ origin: 'http://localhost:3000' });
+  // Izinkan frontend Next.js akses backend
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  });
 
-  await app.listen(process.env.PORT ?? 3001); //ganti port supaya tidak bentrok
-  // console.log('Backend jalan di port 3001');
+  await app.listen(3001);
+  console.log('🚀 Backend jalan di http://localhost:3001');
 }
 bootstrap();

@@ -1,24 +1,34 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import { User } from './users/user.entity';
+import { User } from './user/user.entity';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(), //untuk membaca file .env
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DATABASE_HOST,
-      port: Number(process.env.DATABASE_PORT),
-      username: process.env.DATABASE_USER,
-      password: process.env.DATABASE_PASSWORD,
-      database: process.env.DATABASE_NAME,
-      entities: [User], //nanti diisikan dengan model/tabel
-      synchronize: true, //otomatis membuat tabel (hanya untuk development)
+    // ConfigModule.forRoot() → baca file .env
+    ConfigModule.forRoot({ isGlobal: true }),
+
+    // Koneksi ke PostgreSQL
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get('DATABASE_HOST'),
+        port: config.get<number>('DATABASE_PORT'),
+        username: config.get('DATABASE_USER'),
+        password: config.get('DATABASE_PASSWORD'),
+        database: config.get('DATABASE_NAME'),
+        entities: [User], // daftarkan semua entity di sini
+        synchronize: true, // ⚠️ hanya untuk development! matikan di production
+      }),
     }),
+
+    UserModule,
     AuthModule,
   ],
   controllers: [AppController],
