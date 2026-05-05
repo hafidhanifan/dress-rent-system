@@ -8,6 +8,7 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './user/user.entity';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/category.entity';
+import { DressModule } from './dress/dress.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { Category } from './category/category.entity';
     UserModule,
     AuthModule,
     CategoryModule,
+    DressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
