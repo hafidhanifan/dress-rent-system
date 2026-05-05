@@ -9,11 +9,19 @@ import { User } from './user/user.entity';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/category.entity';
 import { DressModule } from './dress/dress.module';
+import { Dress, DressPhoto, DressSize } from './dress/dress.entity';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
     // ConfigModule.forRoot() → baca file .env
     ConfigModule.forRoot({ isGlobal: true }),
+
+    // Serve foto secara statis dari folder public/
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'),
+    }),
 
     // Koneksi ke PostgreSQL
     TypeOrmModule.forRootAsync({
@@ -26,7 +34,7 @@ import { DressModule } from './dress/dress.module';
         username: config.get('DATABASE_USER'),
         password: config.get('DATABASE_PASSWORD'),
         database: config.get('DATABASE_NAME'),
-        entities: [User, Category], // daftarkan semua entity di sini
+        entities: [User, Category, Dress, DressPhoto, DressSize], // daftarkan semua entity di sini
         synchronize: true, // ⚠️ hanya untuk development! matikan di production
       }),
     }),

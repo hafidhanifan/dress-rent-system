@@ -4,19 +4,19 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  // OneToMany,
+  OneToMany,
 } from 'typeorm';
 
 /**
  * Relasi One-to-Many:
  * Satu kategori → bisa punya banyak dress
  *
- * @OneToMany(() => Dress, (dress) => dress.category)
  * Artinya: "satu Category bisa punya banyak Dress"
  * Ini akan kita tambahkan nanti saat membuat entity Dress
  * Untuk sekarang kita comment dulu supaya tidak error
  */
 
+@OneToMany(() => Dress, (dress) => dress.category)
 @Entity('categories')
 export class Category {
   @PrimaryGeneratedColumn()
