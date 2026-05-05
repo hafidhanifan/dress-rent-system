@@ -34,85 +34,31 @@ const BORDER = "rgba(255,255,255,0.07)";
 const CARD = "rgba(255,255,255,0.03)";
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-// ── Data dummy — akan diganti fetch dari backend ───────────────
-const DUMMY: Category[] = [
-  {
-    id: 1,
-    name: "Evening Gown",
-    slug: "evening-gown",
-    description: "Gaun malam formal untuk acara spesial",
-    order: 1,
-    isActive: true,
-    dressCount: 12,
-    createdAt: "2025-01-10",
-  },
-  {
-    id: 2,
-    name: "Cocktail",
-    slug: "cocktail",
-    description: "Dress semi-formal untuk pesta dan gathering",
-    order: 2,
-    isActive: true,
-    dressCount: 8,
-    createdAt: "2025-01-10",
-  },
-  {
-    id: 3,
-    name: "Midi Dress",
-    slug: "midi-dress",
-    description: "Dress panjang lutut yang serbaguna",
-    order: 3,
-    isActive: true,
-    dressCount: 15,
-    createdAt: "2025-01-10",
-  },
-  {
-    id: 4,
-    name: "Wrap Dress",
-    slug: "wrap-dress",
-    description: "Siluet flattering untuk semua bentuk tubuh",
-    order: 4,
-    isActive: true,
-    dressCount: 7,
-    createdAt: "2025-01-11",
-  },
-  {
-    id: 5,
-    name: "Maxi Dress",
-    slug: "maxi-dress",
-    description: "Dress panjang anggun untuk berbagai acara",
-    order: 5,
-    isActive: false,
-    dressCount: 4,
-    createdAt: "2025-01-12",
-  },
-];
-
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(DUMMY);
+  const [categories, setCategories] = useState<Category[]>;
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [del, setDel] = useState<DelState>({ open: false });
 
   // ── Fetch dari backend ─────────────────────────────────────
-  /**
-   * Uncomment bagian ini setelah backend siap:
-   *
-   * const fetchCategories = useCallback(async () => {
-   *   setLoading(true);
-   *   try {
-   *     const res = await fetch(`${API}/categories`);
-   *     const data = await res.json();
-   *     setCategories(data);
-   *   } catch (e) {
-   *     console.error(e);
-   *   } finally {
-   *     setLoading(false);
-   *   }
-   * }, []);
-   *
-   * useEffect(() => { fetchCategories(); }, [fetchCategories]);
-   */
+  //Uncomment bagian ini setelah backend siap:
+
+  const fetchCategories = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/categories`);
+      const data = await res.json();
+      setCategories(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   // ── Handler submit (add / edit) ────────────────────────────
   const handleSubmit = async (form: FormData, category?: Category) => {
