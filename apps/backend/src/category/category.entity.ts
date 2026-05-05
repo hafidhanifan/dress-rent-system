@@ -4,8 +4,8 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
-} from 'typeOrm';
+  // OneToMany,
+} from 'typeorm';
 
 /**
  * Relasi One-to-Many:

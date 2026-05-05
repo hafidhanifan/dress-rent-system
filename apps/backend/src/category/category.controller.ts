@@ -66,23 +66,3 @@ export class CategoryController {
     return this.categoryService.toggleActive(id);
   }
 }
-
-// ═══════════════════════════════════════════
-// src/category/category.module.ts
-// ═══════════════════════════════════════════
-
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Category } from './category.entity';
-
-@Module({
-  imports: [TypeOrmModule.forFeature([Category])],
-  controllers: [CategoryController],
-  providers: [CategoryService],
-  /**
-   * Export CategoryService supaya nanti bisa dipakai
-   * di DressModule (saat kita buat fitur dress)
-   */
-  exports: [CategoryService],
-})
-export class CategoryModule {}

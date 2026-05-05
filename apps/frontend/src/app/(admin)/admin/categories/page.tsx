@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-// ── Types ──────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// Types — sesuai persis dengan response dari NestJS backend
+// ─────────────────────────────────────────────────────────────
 type Category = {
   id: number;
   name: string;
@@ -12,45 +14,66 @@ type Category = {
   isActive: boolean;
   dressCount?: number;
   createdAt: string;
+  updatedAt: string;
 };
 
-type FormData = {
+type CategoryFormData = {
   name: string;
   description: string;
   order: string;
   isActive: boolean;
 };
 
-type ModalMode = "add" | "edit";
+type ApiError = {
+  message: string | string[];
+  statusCode: number;
+};
+
 type ModalState =
   | { open: false }
   | { open: true; mode: "add" }
   | { open: true; mode: "edit"; category: Category };
+
 type DelState = { open: false } | { open: true; category: Category };
 
-// ── Konstanta warna (konsisten dengan halaman lain) ────────────
+// ─────────────────────────────────────────────────────────────
+// Konstanta
+// ─────────────────────────────────────────────────────────────
 const GOLD = "#d4b478";
 const BORDER = "rgba(255,255,255,0.07)";
 const CARD = "rgba(255,255,255,0.03)";
 const API = process.env.NEXT_PUBLIC_API_URL;
 
+// Helper: ambil pesan error dari response NestJS
+// NestJS kadang kirim message sebagai string, kadang array of strings
+function getErrorMessage(err: ApiError): string {
+  if (Array.isArray(err.message)) return err.message[0];
+  return err.message;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────────────────────
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>;
-  const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [del, setDel] = useState<DelState>({ open: false });
 
-  // ── Fetch dari backend ─────────────────────────────────────
-  //Uncomment bagian ini setelah backend siap:
-
+  // ── Fetch semua kategori dari backend ──────────────────────
   const fetchCategories = useCallback(async () => {
     setLoading(true);
+    setError("");
     try {
       const res = await fetch(`${API}/categories`);
-      const data = await res.json();
+      if (!res.ok) throw new Error("Gagal mengambil data kategori");
+      const data: Category[] = await res.json();
       setCategories(data);
     } catch (e) {
-      console.error(e);
+      setError(
+        "Tidak dapat terhubung ke server. Pastikan backend sudah berjalan.",
+      );
     } finally {
       setLoading(false);
     }
@@ -60,89 +83,115 @@ export default function CategoriesPage() {
     fetchCategories();
   }, [fetchCategories]);
 
-  // ── Handler submit (add / edit) ────────────────────────────
-  const handleSubmit = async (form: FormData, category?: Category) => {
-    const payload = {
-      name: form.name,
-      description: form.description,
-      order: parseInt(form.order) || 0,
-      isActive: form.isActive,
-    };
+  // ── CREATE ─────────────────────────────────────────────────
+  const handleCreate = async (
+    form: CategoryFormData,
+  ): Promise<string | null> => {
+    const res = await fetch(`${API}/categories`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        description: form.description || undefined,
+        order: parseInt(form.order) || 0,
+        isActive: form.isActive,
+      }),
+    });
 
-    /**
-     * Untuk sekarang pakai state lokal (dummy mode).
-     * Uncomment bagian fetch saat backend sudah siap.
-     */
+    const data = await res.json();
 
-    if (category) {
-      // ── EDIT ──
-      /**
-       * const res = await fetch(`${API}/categories/${category.id}`, {
-       *   method: 'PATCH',
-       *   headers: { 'Content-Type': 'application/json' },
-       *   body: JSON.stringify(payload),
-       * });
-       * const updated = await res.json();
-       */
-      const updated = { ...category, ...payload };
-      setCategories((prev) =>
-        prev.map((c) => (c.id === category.id ? updated : c)),
-      );
-    } else {
-      // ── ADD ──
-      /**
-       * const res = await fetch(`${API}/categories`, {
-       *   method: 'POST',
-       *   headers: { 'Content-Type': 'application/json' },
-       *   body: JSON.stringify(payload),
-       * });
-       * const created = await res.json();
-       * setCategories(prev => [...prev, created]);
-       */
-      const created: Category = {
-        id: Date.now(),
-        slug: payload.name.toLowerCase().replace(/\s+/g, "-"),
-        dressCount: 0,
-        createdAt: new Date().toISOString().split("T")[0],
-        ...payload,
-      };
-      setCategories((prev) => [...prev, created]);
+    if (!res.ok) {
+      // Kembalikan pesan error ke modal supaya ditampilkan di sana
+      return getErrorMessage(data as ApiError);
     }
-    setModal({ open: false });
+
+    // Tambahkan ke state lokal — tidak perlu refetch seluruh list
+    setCategories((prev) => [...prev, data]);
+    return null; // null = sukses
   };
 
-  // ── Handler delete ─────────────────────────────────────────
-  const handleDelete = async (category: Category) => {
-    /**
-     * const res = await fetch(`${API}/categories/${category.id}`, {
-     *   method: 'DELETE',
-     * });
-     */
-    setCategories((prev) => prev.filter((c) => c.id !== category.id));
-    setDel({ open: false });
+  // ── UPDATE ─────────────────────────────────────────────────
+  const handleUpdate = async (
+    id: number,
+    form: CategoryFormData,
+  ): Promise<string | null> => {
+    const res = await fetch(`${API}/categories/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: form.name,
+        description: form.description || undefined,
+        order: parseInt(form.order) || 0,
+        isActive: form.isActive,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return getErrorMessage(data as ApiError);
+    }
+
+    setCategories((prev) => prev.map((c) => (c.id === id ? data : c)));
+    return null;
   };
 
-  // ── Handler toggle active ──────────────────────────────────
+  // ── TOGGLE ACTIVE ──────────────────────────────────────────
   const handleToggle = async (category: Category) => {
-    /**
-     * const res = await fetch(`${API}/categories/${category.id}/toggle-active`, {
-     *   method: 'PATCH',
-     * });
-     * const updated = await res.json();
-     */
+    // Optimistic update — update UI dulu, baru kirim ke server
+    // Kalau gagal, kembalikan ke state semula
     setCategories((prev) =>
       prev.map((c) =>
         c.id === category.id ? { ...c, isActive: !c.isActive } : c,
       ),
     );
+
+    const res = await fetch(`${API}/categories/${category.id}/toggle-active`, {
+      method: "PATCH",
+    });
+
+    if (!res.ok) {
+      // Rollback jika gagal
+      setCategories((prev) =>
+        prev.map((c) =>
+          c.id === category.id ? { ...c, isActive: category.isActive } : c,
+        ),
+      );
+    }
   };
 
-  const sorted = [...categories].sort((a, b) => a.order - b.order);
+  // ── DELETE ─────────────────────────────────────────────────
+  const handleDelete = async (category: Category): Promise<string | null> => {
+    const res = await fetch(`${API}/categories/${category.id}`, {
+      method: "DELETE",
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return getErrorMessage(data as ApiError);
+    }
+
+    setCategories((prev) => prev.filter((c) => c.id !== category.id));
+    setDel({ open: false });
+    return null;
+  };
+
+  // ── Statistik ──────────────────────────────────────────────
   const activeCount = categories.filter((c) => c.isActive).length;
   const totalDresses = categories.reduce(
     (sum, c) => sum + (c.dressCount ?? 0),
     0,
   );
+  const sorted = [...categories].sort((a, b) => a.order - b.order);
+
+  // ── Format tanggal ─────────────────────────────────────────
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -178,65 +227,155 @@ export default function CategoriesPage() {
             Categories
           </h1>
         </div>
-        <button
-          onClick={() => setModal({ open: true, mode: "add" })}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            background: "rgba(212,180,120,0.1)",
-            border: "1px solid rgba(212,180,120,0.3)",
-            color: GOLD,
-            fontSize: 11,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            padding: "10px 20px",
-            borderRadius: 3,
-            cursor: "pointer",
-            transition: "all 0.2s",
-          }}
-          onMouseOver={(e) =>
-            (e.currentTarget.style.background = "rgba(212,180,120,0.18)")
-          }
-          onMouseOut={(e) =>
-            (e.currentTarget.style.background = "rgba(212,180,120,0.1)")
-          }
-        >
-          <svg
-            width="12"
-            height="12"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          {/* Tombol refresh */}
+          <button
+            onClick={fetchCategories}
+            disabled={loading}
+            title="Refresh data"
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: `1px solid ${BORDER}`,
+              color: "#4a4440",
+              padding: "9px 12px",
+              borderRadius: 3,
+              cursor: loading ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseOver={(e) =>
+              !loading && (e.currentTarget.style.color = "#9a8a70")
+            }
+            onMouseOut={(e) => (e.currentTarget.style.color = "#4a4440")}
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          Tambah Kategori
-        </button>
+            <svg
+              width="14"
+              height="14"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              style={{
+                animation: loading ? "spin 1s linear infinite" : "none",
+              }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+          </button>
+
+          {/* Tombol tambah */}
+          <button
+            onClick={() => setModal({ open: true, mode: "add" })}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "rgba(212,180,120,0.1)",
+              border: "1px solid rgba(212,180,120,0.3)",
+              color: GOLD,
+              fontSize: 11,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              padding: "10px 20px",
+              borderRadius: 3,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.background = "rgba(212,180,120,0.18)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.background = "rgba(212,180,120,0.1)")
+            }
+          >
+            <svg
+              width="12"
+              height="12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4.5v15m7.5-7.5h-15"
+              />
+            </svg>
+            Tambah Kategori
+          </button>
+        </div>
       </div>
 
-      {/* ── Summary cards ── */}
+      {/* ── Error global ── */}
+      {error && (
+        <div
+          style={{
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.2)",
+            borderRadius: 4,
+            padding: "12px 16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <svg
+              width="16"
+              height="16"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="#f87171"
+              strokeWidth={1.5}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+              />
+            </svg>
+            <p style={{ fontSize: 13, color: "#f87171" }}>{error}</p>
+          </div>
+          <button
+            onClick={fetchCategories}
+            style={{
+              fontSize: 11,
+              color: "#f87171",
+              background: "rgba(248,113,113,0.15)",
+              border: "1px solid rgba(248,113,113,0.3)",
+              padding: "4px 12px",
+              borderRadius: 3,
+              cursor: "pointer",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
+
+      {/* ── Stat cards ── */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
           gap: 12,
         }}
       >
         {[
-          { label: "Total Kategori", value: categories.length, icon: "◈" },
-          { label: "Aktif", value: activeCount, icon: "◉" },
+          { label: "Total Kategori", value: loading ? "—" : categories.length },
+          { label: "Aktif", value: loading ? "—" : activeCount },
           {
             label: "Nonaktif",
-            value: categories.length - activeCount,
-            icon: "◎",
+            value: loading ? "—" : categories.length - activeCount,
           },
-          { label: "Total Dress", value: totalDresses, icon: "◇" },
+          { label: "Total Dress", value: loading ? "—" : totalDresses },
         ].map((s, i) => (
           <div
             key={i}
@@ -247,25 +386,17 @@ export default function CategoriesPage() {
               padding: "16px 18px",
             }}
           >
-            <div
+            <p
               style={{
-                display: "flex",
-                justifyContent: "space-between",
+                fontSize: 9,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "#4a4440",
                 marginBottom: 10,
               }}
             >
-              <p
-                style={{
-                  fontSize: 9,
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                  color: "#4a4440",
-                }}
-              >
-                {s.label}
-              </p>
-              <span style={{ color: "#3a3430", fontSize: 14 }}>{s.icon}</span>
-            </div>
+              {s.label}
+            </p>
             <p
               style={{
                 fontFamily: "'Cormorant Garamond', serif",
@@ -281,7 +412,7 @@ export default function CategoriesPage() {
         ))}
       </div>
 
-      {/* ── Tabel kategori ── */}
+      {/* ── Tabel ── */}
       <div
         style={{
           background: CARD,
@@ -314,249 +445,300 @@ export default function CategoriesPage() {
           </p>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{ width: "100%", minWidth: 580, borderCollapse: "collapse" }}
-          >
-            <thead>
-              <tr style={{ background: "rgba(0,0,0,0.2)" }}>
-                {[
-                  "Order",
-                  "Nama",
-                  "Slug",
-                  "Deskripsi",
-                  "Dress",
-                  "Status",
-                  "Aksi",
-                ].map((h) => (
-                  <th
-                    key={h}
+        {/* Loading state */}
+        {loading ? (
+          <div style={{ padding: "48px", textAlign: "center" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <svg
+                width="24"
+                height="24"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="#4a4440"
+                strokeWidth={1.5}
+                style={{ animation: "spin 1s linear infinite" }}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+                />
+              </svg>
+              <p
+                style={{
+                  fontSize: 12,
+                  color: "#4a4440",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                Memuat data...
+              </p>
+            </div>
+          </div>
+        ) : sorted.length === 0 && !error ? (
+          /* Empty state */
+          <div style={{ padding: "48px", textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "#3a3430", marginBottom: 12 }}>
+              Belum ada kategori
+            </p>
+            <button
+              onClick={() => setModal({ open: true, mode: "add" })}
+              style={{
+                fontSize: 11,
+                color: GOLD,
+                background: "rgba(212,180,120,0.08)",
+                border: "1px solid rgba(212,180,120,0.2)",
+                padding: "8px 16px",
+                borderRadius: 3,
+                cursor: "pointer",
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+              }}
+            >
+              Tambah kategori pertama
+            </button>
+          </div>
+        ) : (
+          <div style={{ overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                minWidth: 620,
+                borderCollapse: "collapse",
+              }}
+            >
+              <thead>
+                <tr style={{ background: "rgba(0,0,0,0.2)" }}>
+                  {[
+                    "Order",
+                    "Nama",
+                    "Slug",
+                    "Deskripsi",
+                    "Status",
+                    "Dibuat",
+                    "Aksi",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: "11px 18px",
+                        textAlign: "left",
+                        fontSize: 9,
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                        color: "#3a3430",
+                        fontWeight: 400,
+                        borderBottom: `1px solid ${BORDER}`,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map((cat) => (
+                  <tr
+                    key={cat.id}
                     style={{
-                      padding: "11px 18px",
-                      textAlign: "left",
-                      fontSize: 9,
-                      letterSpacing: "0.2em",
-                      textTransform: "uppercase",
-                      color: "#3a3430",
-                      fontWeight: 400,
-                      borderBottom: `1px solid ${BORDER}`,
+                      borderBottom: `1px solid rgba(255,255,255,0.03)`,
+                      transition: "background 0.15s",
                     }}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.background =
+                        "rgba(255,255,255,0.015)")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
                   >
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {sorted.map((cat) => (
-                <tr
-                  key={cat.id}
-                  style={{
-                    borderBottom: `1px solid rgba(255,255,255,0.03)`,
-                    transition: "background 0.15s",
-                  }}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.background =
-                      "rgba(255,255,255,0.015)")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
-                >
-                  {/* Order */}
-                  <td style={{ padding: "14px 18px" }}>
-                    <span
+                    {/* Order */}
+                    <td style={{ padding: "14px 18px" }}>
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: 26,
+                          height: 26,
+                          borderRadius: 3,
+                          background: "rgba(255,255,255,0.04)",
+                          border: `1px solid ${BORDER}`,
+                          fontSize: 11,
+                          color: "#5a5450",
+                        }}
+                      >
+                        {cat.order}
+                      </span>
+                    </td>
+
+                    {/* Nama */}
+                    <td style={{ padding: "14px 18px" }}>
+                      <p style={{ fontSize: 13, color: "#c8baa0" }}>
+                        {cat.name}
+                      </p>
+                    </td>
+
+                    {/* Slug */}
+                    <td style={{ padding: "14px 18px" }}>
+                      <span
+                        style={{
+                          fontFamily: "monospace",
+                          fontSize: 11,
+                          color: "#5a5450",
+                          background: "rgba(255,255,255,0.03)",
+                          padding: "3px 8px",
+                          borderRadius: 3,
+                          border: `1px solid rgba(255,255,255,0.05)`,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {cat.slug}
+                      </span>
+                    </td>
+
+                    {/* Deskripsi */}
+                    <td style={{ padding: "14px 18px", maxWidth: 200 }}>
+                      <p
+                        style={{
+                          fontSize: 12,
+                          color: "#4a4440",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {cat.description || (
+                          <span
+                            style={{ color: "#2a2420", fontStyle: "italic" }}
+                          >
+                            —
+                          </span>
+                        )}
+                      </p>
+                    </td>
+
+                    {/* Status — klik untuk toggle */}
+                    <td style={{ padding: "14px 18px" }}>
+                      <button
+                        onClick={() => handleToggle(cat)}
+                        title="Klik untuk toggle status"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          fontSize: 9,
+                          letterSpacing: "0.12em",
+                          textTransform: "uppercase",
+                          padding: "4px 10px",
+                          borderRadius: 20,
+                          cursor: "pointer",
+                          border: "none",
+                          transition: "all 0.2s",
+                          background: cat.isActive
+                            ? "rgba(52,211,153,0.07)"
+                            : "rgba(255,255,255,0.03)",
+                          color: cat.isActive ? "#34d399" : "#4a4440",
+                          outline: `1px solid ${cat.isActive ? "rgba(52,211,153,0.2)" : BORDER}`,
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: "50%",
+                            flexShrink: 0,
+                            background: cat.isActive ? "#34d399" : "#3a3430",
+                          }}
+                        />
+                        {cat.isActive ? "Aktif" : "Nonaktif"}
+                      </button>
+                    </td>
+
+                    {/* Tanggal dibuat */}
+                    <td
                       style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: 24,
-                        height: 24,
-                        borderRadius: 3,
-                        background: "rgba(255,255,255,0.04)",
-                        border: `1px solid ${BORDER}`,
+                        padding: "14px 18px",
                         fontSize: 11,
-                        color: "#5a5450",
-                      }}
-                    >
-                      {cat.order}
-                    </span>
-                  </td>
-
-                  {/* Nama */}
-                  <td style={{ padding: "14px 18px" }}>
-                    <p
-                      style={{
-                        fontSize: 13,
-                        color: "#c8baa0",
-                        marginBottom: 2,
-                      }}
-                    >
-                      {cat.name}
-                    </p>
-                    <p style={{ fontSize: 9, color: "#3a3430" }}>
-                      {cat.createdAt}
-                    </p>
-                  </td>
-
-                  {/* Slug */}
-                  <td style={{ padding: "14px 18px" }}>
-                    <span
-                      style={{
-                        fontFamily: "monospace",
-                        fontSize: 11,
-                        color: "#5a5450",
-                        background: "rgba(255,255,255,0.03)",
-                        padding: "2px 8px",
-                        borderRadius: 3,
-                        border: `1px solid rgba(255,255,255,0.05)`,
-                      }}
-                    >
-                      {cat.slug}
-                    </span>
-                  </td>
-
-                  {/* Deskripsi */}
-                  <td style={{ padding: "14px 18px", maxWidth: 200 }}>
-                    <p
-                      style={{
-                        fontSize: 12,
-                        color: "#4a4440",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
+                        color: "#3a3430",
                         whiteSpace: "nowrap",
                       }}
                     >
-                      {cat.description || "—"}
-                    </p>
-                  </td>
+                      {formatDate(cat.createdAt)}
+                    </td>
 
-                  {/* Jumlah dress */}
-                  <td style={{ padding: "14px 18px" }}>
-                    <span
-                      style={{
-                        fontSize: 12,
-                        color: GOLD,
-                        background: "rgba(212,180,120,0.08)",
-                        padding: "3px 10px",
-                        borderRadius: 20,
-                        border: "1px solid rgba(212,180,120,0.2)",
-                      }}
-                    >
-                      {cat.dressCount ?? 0} dress
-                    </span>
-                  </td>
-
-                  {/* Status toggle */}
-                  <td style={{ padding: "14px 18px" }}>
-                    <button
-                      onClick={() => handleToggle(cat)}
-                      title={
-                        cat.isActive
-                          ? "Klik untuk nonaktifkan"
-                          : "Klik untuk aktifkan"
-                      }
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        fontSize: 9,
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                        padding: "4px 10px",
-                        borderRadius: 20,
-                        cursor: "pointer",
-                        border: "none",
-                        transition: "all 0.2s",
-                        background: cat.isActive
-                          ? "rgba(52,211,153,0.07)"
-                          : "rgba(255,255,255,0.03)",
-                        color: cat.isActive ? "#34d399" : "#4a4440",
-                        outline: `1px solid ${cat.isActive ? "rgba(52,211,153,0.2)" : BORDER}`,
-                      }}
-                    >
-                      <span
-                        style={{
-                          width: 5,
-                          height: 5,
-                          borderRadius: "50%",
-                          flexShrink: 0,
-                          background: cat.isActive ? "#34d399" : "#3a3430",
-                        }}
-                      />
-                      {cat.isActive ? "Aktif" : "Nonaktif"}
-                    </button>
-                  </td>
-
-                  {/* Aksi */}
-                  <td style={{ padding: "14px 18px" }}>
-                    <div style={{ display: "flex", gap: 14 }}>
-                      <button
-                        onClick={() =>
-                          setModal({ open: true, mode: "edit", category: cat })
-                        }
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor: "pointer",
-                          fontSize: 11,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          color: "#5a5450",
-                          padding: 0,
-                          transition: "color 0.15s",
-                        }}
-                        onMouseOver={(e) =>
-                          (e.currentTarget.style.color = GOLD)
-                        }
-                        onMouseOut={(e) =>
-                          (e.currentTarget.style.color = "#5a5450")
-                        }
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => setDel({ open: true, category: cat })}
-                        disabled={(cat.dressCount ?? 0) > 0}
-                        title={
-                          (cat.dressCount ?? 0) > 0
-                            ? "Kategori masih memiliki dress"
-                            : "Hapus kategori"
-                        }
-                        style={{
-                          background: "none",
-                          border: "none",
-                          cursor:
-                            (cat.dressCount ?? 0) > 0
-                              ? "not-allowed"
-                              : "pointer",
-                          fontSize: 11,
-                          letterSpacing: "0.1em",
-                          textTransform: "uppercase",
-                          color:
-                            (cat.dressCount ?? 0) > 0 ? "#2a2420" : "#4a3030",
-                          padding: 0,
-                          transition: "color 0.15s",
-                        }}
-                        onMouseOver={(e) => {
-                          if ((cat.dressCount ?? 0) === 0)
-                            e.currentTarget.style.color = "#f87171";
-                        }}
-                        onMouseOut={(e) => {
-                          if ((cat.dressCount ?? 0) === 0)
-                            e.currentTarget.style.color = "#4a3030";
-                        }}
-                      >
-                        Hapus
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {/* Aksi */}
+                    <td style={{ padding: "14px 18px" }}>
+                      <div style={{ display: "flex", gap: 14 }}>
+                        <button
+                          onClick={() =>
+                            setModal({
+                              open: true,
+                              mode: "edit",
+                              category: cat,
+                            })
+                          }
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: 11,
+                            letterSpacing: "0.1em",
+                            textTransform: "uppercase",
+                            color: "#5a5450",
+                            padding: 0,
+                            transition: "color 0.15s",
+                          }}
+                          onMouseOver={(e) =>
+                            (e.currentTarget.style.color = GOLD)
+                          }
+                          onMouseOut={(e) =>
+                            (e.currentTarget.style.color = "#5a5450")
+                          }
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => setDel({ open: true, category: cat })}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontSize: 11,
+                            letterSpacing: "0.1em",
+                            textTransform: "uppercase",
+                            color: "#4a3030",
+                            padding: 0,
+                            transition: "color 0.15s",
+                          }}
+                          onMouseOver={(e) =>
+                            (e.currentTarget.style.color = "#f87171")
+                          }
+                          onMouseOut={(e) =>
+                            (e.currentTarget.style.color = "#4a3030")
+                          }
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
+      {/* Animasi spin */}
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
       {/* ── Modal Add / Edit ── */}
       {modal.open && (
@@ -564,7 +746,13 @@ export default function CategoriesPage() {
           mode={modal.mode}
           category={modal.mode === "edit" ? modal.category : undefined}
           onClose={() => setModal({ open: false })}
-          onSubmit={handleSubmit}
+          onSubmit={async (form, category) => {
+            if (category) {
+              return handleUpdate(category.id, form);
+            } else {
+              return handleCreate(form);
+            }
+          }}
         />
       )}
 
@@ -580,27 +768,34 @@ export default function CategoriesPage() {
   );
 }
 
-// ═══════════════════════════════════════════════════════
-// Modal Add / Edit Kategori
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// Modal Form Add / Edit
+// ═══════════════════════════════════════════════════════════════
 function CategoryModal({
   mode,
   category,
   onClose,
   onSubmit,
 }: {
-  mode: ModalMode;
+  mode: "add" | "edit";
   category?: Category;
   onClose: () => void;
-  onSubmit: (form: FormData, category?: Category) => void;
+  // onSubmit mengembalikan string (pesan error) atau null (sukses)
+  onSubmit: (
+    form: CategoryFormData,
+    category?: Category,
+  ) => Promise<string | null>;
 }) {
-  const [form, setForm] = useState<FormData>({
+  const [form, setForm] = useState<CategoryFormData>({
     name: category?.name ?? "",
     description: category?.description ?? "",
     order: String(category?.order ?? 0),
     isActive: category?.isActive ?? true,
   });
-  const [errors, setErrors] = useState<Partial<FormData>>({});
+  const [errors, setErrors] = useState<
+    Partial<CategoryFormData & { server: string }>
+  >({});
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fn = (e: KeyboardEvent) => {
@@ -619,21 +814,35 @@ function CategoryModal({
       [name]:
         type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
     }));
-    if (errors[name as keyof FormData])
-      setErrors((p) => ({ ...p, [name]: "" }));
+    if (errors[name as keyof typeof errors]) {
+      setErrors((p) => ({ ...p, [name]: "", server: "" }));
+    }
   };
 
   const validate = () => {
-    const errs: Partial<FormData> = {};
+    const errs: Partial<CategoryFormData> = {};
     if (!form.name.trim()) errs.name = "Nama kategori wajib diisi";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    setSubmitting(true);
+    const error = await onSubmit(form, category);
+    setSubmitting(false);
+    if (error) {
+      // Tampilkan error dari server (misal: nama duplikat)
+      setErrors({ server: error });
+    } else {
+      onClose();
+    }
+  };
+
   const inputStyle: React.CSSProperties = {
     width: "100%",
     background: "rgba(255,255,255,0.03)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: `1px solid rgba(255,255,255,0.08)`,
     borderRadius: 3,
     padding: "10px 14px",
     fontSize: 13,
@@ -641,6 +850,7 @@ function CategoryModal({
     outline: "none",
     transition: "border-color 0.2s",
     boxSizing: "border-box",
+    fontFamily: "inherit",
   };
 
   return (
@@ -741,6 +951,37 @@ function CategoryModal({
             gap: 16,
           }}
         >
+          {/* Error dari server */}
+          {errors.server && (
+            <div
+              style={{
+                background: "rgba(248,113,113,0.08)",
+                border: "1px solid rgba(248,113,113,0.2)",
+                borderRadius: 3,
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="#f87171"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+                />
+              </svg>
+              <p style={{ fontSize: 12, color: "#f87171" }}>{errors.server}</p>
+            </div>
+          )}
+
           {/* Nama */}
           <div>
             <label
@@ -787,7 +1028,7 @@ function CategoryModal({
                 marginBottom: 8,
               }}
             >
-              Deskripsi
+              Deskripsi <span style={{ color: "#3a3430" }}>(opsional)</span>
             </label>
             <textarea
               name="description"
@@ -795,7 +1036,7 @@ function CategoryModal({
               onChange={set}
               rows={2}
               placeholder="Deskripsi singkat kategori ini..."
-              style={{ ...inputStyle, resize: "none", fontFamily: "inherit" }}
+              style={{ ...inputStyle, resize: "none" }}
             />
           </div>
 
@@ -830,6 +1071,7 @@ function CategoryModal({
               </p>
             </div>
 
+            {/* Toggle status */}
             <div>
               <label
                 style={{
@@ -865,6 +1107,7 @@ function CategoryModal({
                   onChange={set}
                   style={{ display: "none" }}
                 />
+                {/* Toggle switch visual */}
                 <div
                   style={{
                     width: 32,
@@ -933,29 +1176,33 @@ function CategoryModal({
             Batal
           </button>
           <button
-            onClick={() => {
-              if (validate()) onSubmit(form, category);
-            }}
+            onClick={handleSubmit}
+            disabled={submitting}
             style={{
-              background: "rgba(212,180,120,0.12)",
+              background: submitting
+                ? "rgba(212,180,120,0.05)"
+                : "rgba(212,180,120,0.12)",
               border: "1px solid rgba(212,180,120,0.3)",
-              color: GOLD,
+              color: submitting ? "#7a6840" : GOLD,
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
               padding: "10px 24px",
               borderRadius: 3,
-              cursor: "pointer",
+              cursor: submitting ? "not-allowed" : "pointer",
               transition: "all 0.2s",
+              minWidth: 100,
             }}
             onMouseOver={(e) =>
+              !submitting &&
               (e.currentTarget.style.background = "rgba(212,180,120,0.2)")
             }
             onMouseOut={(e) =>
+              !submitting &&
               (e.currentTarget.style.background = "rgba(212,180,120,0.12)")
             }
           >
-            {mode === "add" ? "Tambah" : "Simpan"}
+            {submitting ? "Menyimpan..." : mode === "add" ? "Tambah" : "Simpan"}
           </button>
         </div>
       </div>
@@ -963,9 +1210,9 @@ function CategoryModal({
   );
 }
 
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // Modal Konfirmasi Hapus
-// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function DeleteModal({
   category,
   onClose,
@@ -973,8 +1220,21 @@ function DeleteModal({
 }: {
   category: Category;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<string | null>;
 }) {
+  const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handle = async () => {
+    setDeleting(true);
+    const err = await onConfirm();
+    if (err) {
+      setError(err);
+      setDeleting(false);
+    }
+    // Kalau sukses, modal ditutup di handleDelete
+  };
+
   return (
     <div
       onClick={(e) => {
@@ -1031,6 +1291,7 @@ function DeleteModal({
             />
           </svg>
         </div>
+
         <h3
           style={{
             fontFamily: "'Cormorant Garamond', serif",
@@ -1047,12 +1308,27 @@ function DeleteModal({
             fontSize: 13,
             color: "#5a5450",
             lineHeight: 1.6,
-            marginBottom: 24,
+            marginBottom: error ? 12 : 24,
           }}
         >
           <span style={{ color: "#c8baa0" }}>{category.name}</span> akan dihapus
-          permanen. Pastikan kategori ini tidak memiliki dress aktif.
+          permanen dari database dan tidak bisa dikembalikan.
         </p>
+
+        {error && (
+          <div
+            style={{
+              background: "rgba(248,113,113,0.08)",
+              border: "1px solid rgba(248,113,113,0.2)",
+              borderRadius: 3,
+              padding: "10px 14px",
+              marginBottom: 16,
+            }}
+          >
+            <p style={{ fontSize: 12, color: "#f87171" }}>{error}</p>
+          </div>
+        )}
+
         <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <button
             onClick={onClose}
@@ -1073,27 +1349,32 @@ function DeleteModal({
             Batal
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handle}
+            disabled={deleting}
             style={{
-              background: "rgba(248,113,113,0.1)",
+              background: deleting
+                ? "rgba(248,113,113,0.05)"
+                : "rgba(248,113,113,0.1)",
               border: "1px solid rgba(248,113,113,0.3)",
-              color: "#f87171",
+              color: deleting ? "#8a4040" : "#f87171",
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
               padding: "9px 20px",
               borderRadius: 3,
-              cursor: "pointer",
+              cursor: deleting ? "not-allowed" : "pointer",
               transition: "all 0.2s",
             }}
             onMouseOver={(e) =>
+              !deleting &&
               (e.currentTarget.style.background = "rgba(248,113,113,0.18)")
             }
             onMouseOut={(e) =>
+              !deleting &&
               (e.currentTarget.style.background = "rgba(248,113,113,0.1)")
             }
           >
-            Ya, Hapus
+            {deleting ? "Menghapus..." : "Ya, Hapus"}
           </button>
         </div>
       </div>
