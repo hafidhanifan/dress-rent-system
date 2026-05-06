@@ -4,7 +4,6 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
 } from 'typeorm';
 
 /**
@@ -16,7 +15,6 @@ import {
  * Untuk sekarang kita comment dulu supaya tidak error
  */
 
-@OneToMany(() => Dress, (dress) => dress.category)
 @Entity('categories')
 export class Category {
   @PrimaryGeneratedColumn()

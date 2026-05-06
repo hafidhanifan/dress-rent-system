@@ -9,7 +9,9 @@ import { User } from './user/user.entity';
 import { CategoryModule } from './category/category.module';
 import { Category } from './category/category.entity';
 import { DressModule } from './dress/dress.module';
-import { Dress, DressPhoto, DressSize } from './dress/dress.entity';
+import { Dress } from './dress/dress.entity';
+import { DressPhoto } from './dress/dress-photo.entity';
+import { DressSize } from './dress/dress-size.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
