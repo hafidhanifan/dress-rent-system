@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import Navbar from "@/components/public/Navbar";
@@ -86,12 +87,13 @@ export default function DressesPage() {
     });
   }, [dresses]);
 
+  const pathname = usePathname();
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [dr, cr] = await Promise.all([
-        fetch(`${API}/dresses`),
-        fetch(`${API}/categories`),
+        fetch(`${API}/dresses`, { cache: "no-store" }),
+        fetch(`${API}/categories`, { cache: "no-store" }),
       ]);
       const [dd, cd] = await Promise.all([dr.json(), cr.json()]);
       // Hanya tampilkan dress yang aktif dan available
@@ -107,8 +109,10 @@ export default function DressesPage() {
   }, []);
 
   useEffect(() => {
+    setDresses([]);
+    setLoading(true);
     fetchData();
-  }, [fetchData]);
+  }, [pathname, fetchData]);
 
   // Filter + sort
   const filtered = dresses
