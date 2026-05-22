@@ -253,7 +253,7 @@ export default function DressesList({
 }
 
 // ─────────────────────────────────────────────────────────────
-// Kartu Dress
+// Card Dress
 // ─────────────────────────────────────────────────────────────
 function DressCard({
   dress,
@@ -267,6 +267,16 @@ function DressCard({
   isMid: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
+  const [wishlisted, setWishListed] = useState(false);
+
+  const handleWishlist = (e: React.MouseEvent) => {
+    // cegah navigasi ke halaman detail saat klik icon love
+    e.preventDefault();
+    e.stopPropagation();
+    setWishListed((prev) => !prev);
+
+    // Nanti di sini digunakan untuk melakukan pengecekan login. kalau belum login redirect ke /auth/login
+  };
 
   return (
     <Link
@@ -318,6 +328,34 @@ function DressCard({
             </p>
           </div>
         )}
+
+        <button
+          onClick={handleWishlist}
+          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300"
+          style={{
+            background: wishlisted
+              ? "rgba(255,255,255,0.95)"
+              : "rgba(255,255,255,0.7)",
+            backdropFilter: "blur(4px)",
+            opacity: hovered || wishlisted ? 1 : 0,
+            transform: hovered || wishlisted ? "scale(1)" : "scale(0.8)",
+          }}
+          aria-label={wishlisted ? "Hapus dari wishlist" : "Tambah ke wishlist"}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            // Kalau wishlisted: fill merah, kalau tidak: hanya stroke
+            fill={wishlisted ? "#e57373" : "none"}
+            stroke={wishlisted ? "#e57373" : "#78716c"}
+          >
+            <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+          </svg>
+        </button>
 
         <div
           className="absolute inset-0 bg-stone-900/10 transition-opacity duration-500"
