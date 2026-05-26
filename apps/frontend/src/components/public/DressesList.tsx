@@ -1,15 +1,11 @@
 "use client";
 
-// src/components/public/DressesList.tsx
-// INI CLIENT COMPONENT — hanya untuk filter, search, hover effect
-// Data sudah diterima dari Server Component sebagai props
-
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
-type Category = { id: number; name: string; slug: string };
+type Category = { id: number; name: string; slug: string; isActive: boolean };
 type DressPhoto = {
   id: number;
   url: string;
@@ -44,7 +40,24 @@ export default function DressesList({
     "default",
   );
 
-  // Animasi scroll-in — jalan sekali saat komponen mount
+  useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).__markHydrated) {
+      (window as any).__markHydrated();
+    }
+  }, []);
+
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
+  // Animasi scroll-in
   useEffect(() => {
     const els = document.querySelectorAll<HTMLElement>("[data-reveal]");
     requestAnimationFrame(() => {
@@ -74,9 +87,8 @@ export default function DressesList({
         els.forEach((el) => obs.observe(el));
       });
     });
-  }, []);
+  }, [initialDresses]); // jalan ulang setiap dresses berubah
 
-  // Filter + sort — semua di client, tidak perlu fetch ulang
   const filtered = initialDresses
     .filter((d) => {
       const matchSearch = d.name.toLowerCase().includes(search.toLowerCase());
@@ -145,7 +157,6 @@ export default function DressesList({
       {/* Filter bar */}
       <div className="sticky top-0 z-20 bg-[#f0ebe3]/90 backdrop-blur-sm border-b border-stone-200/60">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          {/* Kategori pills */}
           <div className="flex items-center gap-2 flex-wrap">
             {[
               { id: "all", name: "Semua" },
@@ -168,7 +179,6 @@ export default function DressesList({
             ))}
           </div>
 
-          {/* Search + sort */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="relative">
               <svg
@@ -267,15 +277,13 @@ function DressCard({
   isMid: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
-  const [wishlisted, setWishListed] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
 
   const handleWishlist = (e: React.MouseEvent) => {
-    // cegah navigasi ke halaman detail saat klik icon love
     e.preventDefault();
     e.stopPropagation();
-    setWishListed((prev) => !prev);
-
-    // Nanti di sini digunakan untuk melakukan pengecekan login. kalau belum login redirect ke /auth/login
+    setWishlisted((prev) => !prev);
+    // Nanti: cek login dulu, kalau belum login redirect ke /auth/login
   };
 
   return (
@@ -329,6 +337,7 @@ function DressCard({
           </div>
         )}
 
+        {/* Tombol Wishlist */}
         <button
           onClick={handleWishlist}
           className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300"
@@ -349,7 +358,6 @@ function DressCard({
             strokeWidth={1.5}
             strokeLinecap="round"
             strokeLinejoin="round"
-            // Kalau wishlisted: fill merah, kalau tidak: hanya stroke
             fill={wishlisted ? "#e57373" : "none"}
             stroke={wishlisted ? "#e57373" : "#78716c"}
           >

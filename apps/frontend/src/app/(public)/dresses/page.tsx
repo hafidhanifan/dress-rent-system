@@ -4,10 +4,6 @@
 
 import DressesList from "@/components/public/DressesList";
 
-// Force dynamic — tidak pernah di-cache
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-
 type Category = { id: number; name: string; slug: string; isActive: boolean };
 type DressPhoto = {
   id: number;
@@ -56,7 +52,6 @@ async function getCategories(): Promise<Category[]> {
 }
 
 export default async function DressesPage() {
-  // Fetch data di server — dijamin selalu fresh
   const [dresses, categories] = await Promise.all([
     getDresses(),
     getCategories(),

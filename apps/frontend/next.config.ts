@@ -2,17 +2,26 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns: [
+    unoptimized: true,
+  },
+  experimental: {
+    staleTimes: {
+      dynamic: 0,
+      static: 30,
+    },
+  },
+  async headers() {
+    return [
       {
-        protocol: "http",
-        hostname: "localhost",
-        port: "3001",
-        pathname: "/**",
+        source: "/dresses",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-store, no-cache, must-revalidate",
+          },
+        ],
       },
-    ],
-    // Izinkan private IP seperti localhost
-    dangerouslyAllowSVG: true,
-    unoptimized: process.env.NODE_ENV === "development",
+    ];
   },
 };
 

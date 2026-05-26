@@ -40,6 +40,23 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${jost.variable} h-full antialiased`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+    (function(){
+      var hydrated = false;
+      window.__markHydrated = function(){ hydrated = true; };
+      window.addEventListener('pageshow', function(){
+        setTimeout(function(){
+          if(!hydrated){ window.location.reload(); }
+        }, 500);
+      });
+    })();
+  `,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
