@@ -40,24 +40,22 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${cormorant.variable} ${jost.variable} h-full antialiased`}
     >
-      <head>
+      <body className="min-h-full flex flex-col">
         <script
           dangerouslySetInnerHTML={{
             __html: `
-    (function(){
-      var hydrated = false;
-      window.__markHydrated = function(){ hydrated = true; };
-      window.addEventListener('pageshow', function(){
-        setTimeout(function(){
-          if(!hydrated){ window.location.reload(); }
-        }, 500);
+      window.addEventListener('pageshow', function(e) {
+        var navType = performance.getEntriesByType('navigation')[0]?.type;
+        console.log('pageshow, navType =', navType);
+        if (navType === 'back_forward') {
+          window.location.reload();
+        }
       });
-    })();
-  `,
+    `,
           }}
         />
-      </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+        {children}
+      </body>
     </html>
   );
 }

@@ -1,6 +1,7 @@
+// Client Component
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
@@ -24,7 +25,7 @@ type Dress = {
   photos: DressPhoto[];
 };
 
-const getThumb = (d: Dress): DressPhoto | undefined =>
+const getThumb = (d: Dress) =>
   d.photos?.find((p) => p.isThumbnail) ?? d.photos?.[0];
 
 export default function DressesList({
@@ -39,55 +40,6 @@ export default function DressesList({
   const [sort, setSort] = useState<"default" | "price-asc" | "price-desc">(
     "default",
   );
-
-  useEffect(() => {
-    if (typeof window !== "undefined" && (window as any).__markHydrated) {
-      (window as any).__markHydrated();
-    }
-  }, []);
-
-  useEffect(() => {
-    const handlePageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) {
-        window.location.reload();
-      }
-    };
-
-    window.addEventListener("pageshow", handlePageShow);
-    return () => window.removeEventListener("pageshow", handlePageShow);
-  }, []);
-
-  // Animasi scroll-in
-  useEffect(() => {
-    const els = document.querySelectorAll<HTMLElement>("[data-reveal]");
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        els.forEach((el) => {
-          el.style.opacity = "0";
-          el.style.transform = "translateY(24px)";
-          el.style.transition = "opacity 0s, transform 0s";
-        });
-        const obs = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((entry) => {
-              if (!entry.isIntersecting) return;
-              const el = entry.target as HTMLElement;
-              const delay = parseFloat(el.dataset.delay ?? "0") * 1000;
-              setTimeout(() => {
-                el.style.transition =
-                  "opacity 0.75s ease, transform 0.75s ease";
-                el.style.opacity = "1";
-                el.style.transform = "translateY(0)";
-              }, delay);
-              obs.unobserve(el);
-            });
-          },
-          { threshold: 0, rootMargin: "0px 0px -40px 0px" },
-        );
-        els.forEach((el) => obs.observe(el));
-      });
-    });
-  }, [initialDresses]); // jalan ulang setiap dresses berubah
 
   const filtered = initialDresses
     .filter((d) => {
@@ -104,13 +56,8 @@ export default function DressesList({
 
   return (
     <div className="min-h-screen bg-[#f0ebe3]">
-      {/* Header */}
       <div className="pt-32 pb-14 px-6 text-center">
-        <div
-          data-reveal
-          data-delay="0.05"
-          className="flex items-center justify-center gap-2 mb-8"
-        >
+        <div className="flex items-center justify-center gap-2 mb-8">
           <Link
             href="/"
             className="font-sans text-[10px] tracking-[0.2em] uppercase text-stone-400 hover:text-stone-600 transition-colors"
@@ -124,28 +71,18 @@ export default function DressesList({
         </div>
 
         <h1
-          data-reveal
-          data-delay="0.1"
           className="font-serif font-[300] text-stone-800 leading-none mb-5"
           style={{ fontSize: "clamp(2.8rem, 7vw, 6rem)" }}
         >
           All <em className="italic">Dresses</em>
         </h1>
 
-        <p
-          data-reveal
-          data-delay="0.18"
-          className="font-sans font-[300] text-stone-400 text-sm leading-relaxed max-w-md mx-auto"
-        >
+        <p className="font-sans font-[300] text-stone-400 text-sm leading-relaxed max-w-md mx-auto">
           Setiap gaun adalah sebuah cerita — temukan yang paling sempurna untuk
           momenmu.
         </p>
 
-        <div
-          data-reveal
-          data-delay="0.24"
-          className="flex items-center justify-center gap-4 mt-8"
-        >
+        <div className="flex items-center justify-center gap-4 mt-8">
           <div className="w-12 h-[1px] bg-stone-300" />
           <span className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-300">
             {filtered.length} dress
@@ -154,7 +91,6 @@ export default function DressesList({
         </div>
       </div>
 
-      {/* Filter bar */}
       <div className="sticky top-0 z-20 bg-[#f0ebe3]/90 backdrop-blur-sm border-b border-stone-200/60">
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
@@ -178,7 +114,6 @@ export default function DressesList({
               </button>
             ))}
           </div>
-
           <div className="flex items-center gap-3 flex-shrink-0">
             <div className="relative">
               <svg
@@ -217,7 +152,6 @@ export default function DressesList({
         </div>
       </div>
 
-      {/* Grid */}
       <main className="max-w-7xl mx-auto px-6 md:px-10 py-12 md:py-16">
         {filtered.length === 0 ? (
           <div className="text-center py-24">
@@ -245,7 +179,6 @@ export default function DressesList({
                   key={dress.id}
                   dress={dress}
                   thumb={getThumb(dress)}
-                  delay={0.05 + (i % 3) * 0.08}
                   isMid={i % 3 === 1}
                 />
               ))}
@@ -262,39 +195,22 @@ export default function DressesList({
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Card Dress
-// ─────────────────────────────────────────────────────────────
 function DressCard({
   dress,
   thumb,
-  delay,
   isMid,
 }: {
   dress: Dress;
   thumb: DressPhoto | undefined;
-  delay: number;
   isMid: boolean;
 }) {
-  const [hovered, setHovered] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
-
-  const handleWishlist = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setWishlisted((prev) => !prev);
-    // Nanti: cek login dulu, kalau belum login redirect ke /auth/login
-  };
 
   return (
     <Link
       href={`/dresses/${dress.slug}`}
-      data-reveal
-      data-delay={String(delay)}
       className="group block"
       style={{ marginTop: isMid ? "-2rem" : "0" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <div
         className="relative overflow-hidden bg-stone-200/60 w-full"
@@ -304,25 +220,10 @@ function DressCard({
           <img
             src={`${IMG_BASE}${thumb.url}`}
             alt={dress.name}
-            className="w-full h-full object-cover object-top transition-transform duration-700 ease-out"
-            style={{ transform: hovered ? "scale(1.04)" : "scale(1)" }}
+            className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#e8e0d5]">
-            <svg
-              width="28"
-              height="28"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="#c8b8a0"
-              strokeWidth={1}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-              />
-            </svg>
             <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400">
               Foto belum tersedia
             </span>
@@ -337,18 +238,13 @@ function DressCard({
           </div>
         )}
 
-        {/* Tombol Wishlist */}
         <button
-          onClick={handleWishlist}
-          className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-300"
-          style={{
-            background: wishlisted
-              ? "rgba(255,255,255,0.95)"
-              : "rgba(255,255,255,0.7)",
-            backdropFilter: "blur(4px)",
-            opacity: hovered || wishlisted ? 1 : 0,
-            transform: hovered || wishlisted ? "scale(1)" : "scale(0.8)",
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setWishlisted((p) => !p);
           }}
+          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 ${wishlisted ? "!opacity-100 !scale-100 bg-white/95" : "bg-white/70"}`}
           aria-label={wishlisted ? "Hapus dari wishlist" : "Tambah ke wishlist"}
         >
           <svg
@@ -365,19 +261,8 @@ function DressCard({
           </svg>
         </button>
 
-        <div
-          className="absolute inset-0 bg-stone-900/10 transition-opacity duration-500"
-          style={{ opacity: hovered ? 1 : 0 }}
-        />
-
-        <div
-          className="absolute bottom-4 left-0 right-0 flex justify-center"
-          style={{
-            opacity: hovered ? 1 : 0,
-            transform: hovered ? "translateY(0)" : "translateY(8px)",
-            transition: "all 0.4s ease",
-          }}
-        >
+        <div className="absolute inset-0 bg-stone-900/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
+        <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none">
           <span className="font-sans text-[9px] tracking-[0.25em] uppercase bg-[#f0ebe3]/90 backdrop-blur-sm text-stone-700 px-5 py-2">
             Lihat Detail
           </span>
@@ -395,15 +280,7 @@ function DressCard({
           {dress.name}
         </h2>
         {dress.description && (
-          <p
-            className="font-sans font-[300] text-stone-400 text-xs leading-relaxed"
-            style={{
-              display: "-webkit-box",
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
+          <p className="font-sans font-[300] text-stone-400 text-xs leading-relaxed line-clamp-2">
             {dress.description}
           </p>
         )}

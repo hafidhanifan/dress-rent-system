@@ -4,20 +4,14 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-  experimental: {
-    staleTimes: {
-      dynamic: 0,
-      static: 30,
-    },
-  },
   async headers() {
     return [
       {
-        source: "/dresses",
+        source: "/(.*)",
         headers: [
           {
             key: "Cache-Control",
-            value: "no-store, no-cache, must-revalidate",
+            value: "no-store",
           },
         ],
       },

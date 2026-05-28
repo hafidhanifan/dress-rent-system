@@ -1,7 +1,4 @@
-// src/app/(public)/dresses/page.tsx
 // INI SERVER COMPONENT — tidak ada "use client"
-// Data di-fetch di server, selalu fresh setiap kunjungan termasuk back/forward
-
 import DressesList from "@/components/public/DressesList";
 
 type Category = { id: number; name: string; slug: string; isActive: boolean };
