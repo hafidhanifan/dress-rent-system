@@ -1,17 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { saveAuth } from "@/lib/auth";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect") ?? "/";
+
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [userName, setUserName] = useState("");
+
+  // Redirect setelah popup muncul
+  useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => {
+      router.push(redirectTo);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [success, router, redirectTo]);
 
   const setField = (k: string, v: string) => {
     setForm((p) => ({ ...p, [k]: v }));
@@ -44,10 +59,11 @@ export default function LoginPage() {
         setErrors({ server: data.message ?? "Email atau password salah" });
         return;
       }
-      // Simpan token
-      localStorage.setItem("token", data.token ?? data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      router.push("/");
+      // Simpan auth
+      saveAuth(data.access_token, data.user);
+      setUserName(data.user.fullName?.split(" ")[0] ?? "");
+      // Tampilkan popup sukses
+      setSuccess(true);
     } catch {
       setErrors({ server: "Tidak dapat terhubung ke server" });
     } finally {
@@ -57,9 +73,55 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#f0ebe3] flex">
+      {/* ── Popup sukses ── */}
+      {success && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#f0ebe3]/80 backdrop-blur-sm">
+          <div
+            className="text-center px-12 py-14 bg-[#f0ebe3] border border-stone-200 shadow-2xl"
+            style={{ animation: "fadeUp 0.5s ease forwards" }}
+          >
+            {/* Ikon centang */}
+            <div className="w-12 h-12 rounded-full border border-stone-300 flex items-center justify-center mx-auto mb-6">
+              <svg
+                width="20"
+                height="20"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="#78716c"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m4.5 12.75 6 6 9-13.5"
+                />
+              </svg>
+            </div>
+            <p className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-400 mb-3">
+              Login Berhasil
+            </p>
+            <h2
+              className="font-serif font-[300] text-stone-800 mb-2"
+              style={{ fontSize: "clamp(1.6rem, 3vw, 2rem)" }}
+            >
+              Selamat datang{userName ? `, ${userName}` : ""}
+            </h2>
+            <p className="font-sans text-xs text-stone-400">
+              Mengalihkan halaman...
+            </p>
+            {/* Progress bar */}
+            <div className="mt-6 h-[1px] bg-stone-200 overflow-hidden">
+              <div
+                className="h-full bg-stone-500"
+                style={{ animation: "progress 2s linear forwards" }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Kiri: Visual Panel ── */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#1a1714] flex-col justify-between p-14">
-        {/* Texture overlay */}
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -68,12 +130,8 @@ export default function LoginPage() {
             backgroundSize: "200px",
           }}
         />
-
-        {/* Garis dekoratif */}
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#d4b478]/30 to-transparent" />
         <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#d4b478]/30 to-transparent" />
-
-        {/* Logo */}
         <div>
           <Link href="/" className="inline-block">
             <p className="font-sans text-[9px] tracking-[0.4em] uppercase text-[#d4b478]/60 mb-1">
@@ -84,8 +142,6 @@ export default function LoginPage() {
             </h2>
           </Link>
         </div>
-
-        {/* Quote tengah */}
         <div className="my-auto">
           <div className="w-8 h-[1px] bg-[#d4b478]/40 mb-8" />
           <blockquote
@@ -97,8 +153,6 @@ export default function LoginPage() {
           </blockquote>
           <div className="w-8 h-[1px] bg-[#d4b478]/40 mt-8" />
         </div>
-
-        {/* Bottom info */}
         <div className="flex items-center gap-6">
           <div>
             <p className="font-sans text-[9px] tracking-[0.2em] uppercase text-[#4a4440] mb-1">
@@ -122,7 +176,6 @@ export default function LoginPage() {
 
       {/* ── Kanan: Form Panel ── */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 lg:px-20 py-16">
-        {/* Mobile logo */}
         <div className="lg:hidden mb-12">
           <Link href="/">
             <p className="font-sans text-[9px] tracking-[0.4em] uppercase text-stone-400 mb-0.5">
@@ -135,7 +188,6 @@ export default function LoginPage() {
         </div>
 
         <div className="max-w-sm w-full mx-auto lg:mx-0">
-          {/* Header */}
           <div className="mb-10">
             <p className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-400 mb-3">
               Selamat Datang Kembali
@@ -148,14 +200,12 @@ export default function LoginPage() {
             </h1>
           </div>
 
-          {/* Error server */}
           {errors.server && (
             <div className="mb-6 px-4 py-3 border border-red-200 bg-red-50 rounded-sm">
               <p className="font-sans text-xs text-red-500">{errors.server}</p>
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
@@ -167,10 +217,8 @@ export default function LoginPage() {
                 value={form.email}
                 onChange={(e) => setField("email", e.target.value)}
                 placeholder="nama@email.com"
-                className="w-full bg-transparent border-b py-3 font-sans text-sm text-stone-700 placeholder:text-stone-300 outline-none transition-colors duration-200 focus:placeholder:text-stone-200"
-                style={{
-                  borderColor: errors.email ? "#fca5a5" : "#d6d3d1",
-                }}
+                className="w-full bg-transparent border-b py-3 font-sans text-sm text-stone-700 placeholder:text-stone-300 outline-none transition-colors duration-200"
+                style={{ borderColor: errors.email ? "#fca5a5" : "#d6d3d1" }}
                 onFocus={(e) => (e.target.style.borderColor = "#1c1917")}
                 onBlur={(e) =>
                   (e.target.style.borderColor = errors.email
@@ -283,7 +331,6 @@ export default function LoginPage() {
             </div>
           </form>
 
-          {/* Divider */}
           <div className="flex items-center gap-4 my-8">
             <div className="flex-1 h-[1px] bg-stone-200" />
             <span className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-300">
@@ -292,7 +339,6 @@ export default function LoginPage() {
             <div className="flex-1 h-[1px] bg-stone-200" />
           </div>
 
-          {/* Link ke register */}
           <p className="font-sans text-xs text-stone-400 text-center">
             Belum punya akun?{" "}
             <Link
@@ -304,6 +350,17 @@ export default function LoginPage() {
           </p>
         </div>
       </div>
+
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes progress {
+          from { width: 0%; }
+          to { width: 100%; }
+        }
+      `}</style>
     </div>
   );
 }
