@@ -3,6 +3,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
+import { useWishlist } from "@/hooks/useWishlist";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
@@ -204,7 +207,10 @@ function DressCard({
   thumb: DressPhoto | undefined;
   isMid: boolean;
 }) {
-  const [wishlisted, setWishlisted] = useState(false);
+  const router = useRouter();
+  const { loggedIn } = useAuth();
+  const { isWishlisted, toggleWishlist } = useWishlist();
+  const wishlisted = isWishlisted(dress.id);
 
   return (
     <Link
@@ -239,10 +245,14 @@ function DressCard({
         )}
 
         <button
-          onClick={(e) => {
+          onClick={async (e) => {
             e.preventDefault();
             e.stopPropagation();
-            setWishlisted((p) => !p);
+            if (!loggedIn) {
+              router.push("/auth/login?redirect=/dresses");
+              return;
+            }
+            await toggleWishlist(dress.id);
           }}
           className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 ${wishlisted ? "!opacity-100 !scale-100 bg-white/95" : "bg-white/70"}`}
           aria-label={wishlisted ? "Hapus dari wishlist" : "Tambah ke wishlist"}

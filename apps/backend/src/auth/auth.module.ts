@@ -6,6 +6,7 @@ import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { StringValue } from 'ms'; // ⬅️ penting
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { StringValue } from 'ms'; // ⬅️ penting
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService],
 })
 export class AuthModule {}
