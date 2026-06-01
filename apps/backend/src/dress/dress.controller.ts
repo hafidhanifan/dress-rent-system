@@ -36,9 +36,11 @@ const multerConfig = {
   }),
   fileFilter: (req: any, file: any, cb: any) => {
     // Hanya izinkan gambar
-    if (!file.mimetype.match(/^image\/(jpg|jpeg|png|webp)$/)) {
+    if (!file.mimetype.match(/^image\/(jpg|jpeg|png|webp|avif)$/)) {
       cb(
-        new Error('Hanya file gambar yang diizinkan (jpg, jpeg, png, webp)'),
+        new Error(
+          'Hanya file gambar yang diizinkan (jpg, jpeg, png, webp, avif)',
+        ),
         false,
       );
     } else {
