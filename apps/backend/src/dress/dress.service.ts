@@ -137,6 +137,12 @@ export class DressService {
     return dress;
   }
 
+  async findBySlug(slug: string): Promise<Dress> {
+    const dress = await this.dressRepo.findOne({ where: { slug } });
+    if (!dress) throw new NotFoundException(`Dress tidak ditemukan`);
+    return dress;
+  }
+
   // ── UPDATE ───────────────────────────────────────────────────
   async update(
     id: number,
