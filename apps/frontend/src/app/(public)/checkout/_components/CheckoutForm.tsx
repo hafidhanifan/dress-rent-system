@@ -112,7 +112,8 @@ export default function CheckoutForm({
     setError("");
 
     try {
-      const res = await fetch(`${API}/orders`, {
+      // 1. Buat pesanan dulu
+      const orderRes = await fetch(`${API}/orders`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -127,18 +128,55 @@ export default function CheckoutForm({
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message ?? "Gagal membuat pesanan");
+      const order = await orderRes.json();
+      if (!orderRes.ok) {
+        setError(order.message ?? "Gagal membuat pesanan");
+        setLoading(false);
         return;
       }
 
-      // Nanti: redirect ke halaman payment Midtrans
-      // Untuk sekarang redirect ke halaman konfirmasi
-      router.push(`/orders/${data.id}?success=true`);
+      // 2. Minta snap token dari backend
+      const snapRes = await fetch(`${API}/payment/snap-token/${order.id}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      const snapData = await snapRes.json();
+      if (!snapRes.ok) {
+        setError(snapData.message ?? "Gagal memproses pembayaran");
+        setLoading(false);
+        return;
+      }
+
+      // 3. Tampilkan popup Midtrans
+      const snapWindow = (window as any).snap;
+      if (!snapWindow) {
+        setError("Midtrans tidak tersedia, coba refresh halaman");
+        setLoading(false);
+        return;
+      }
+
+      snapWindow.pay(snapData.snapToken, {
+        onSuccess: (result: any) => {
+          console.log("Pembayaran berhasil:", result);
+          router.push(`/orders/${order.id}?payment=finish`);
+        },
+        onPending: (result: any) => {
+          console.log("Menunggu pembayaran:", result);
+          router.push(`/orders/${order.id}?payment=pending`);
+        },
+        onError: (result: any) => {
+          console.log("Pembayaran gagal:", result);
+          setError("Pembayaran gagal, silakan coba lagi");
+          setLoading(false);
+        },
+        onClose: () => {
+          // User tutup popup tanpa bayar
+          setLoading(false);
+        },
+      });
     } catch {
       setError("Tidak dapat terhubung ke server");
-    } finally {
       setLoading(false);
     }
   };

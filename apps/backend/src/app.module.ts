@@ -16,6 +16,7 @@ import { WishlistModule } from './wishlist/wishlist.module';
 import { Wishlist } from './wishlist/wishlist.entity';
 import { OrderModule } from './order/order.module';
 import { Order } from './order/order.entity';
+import { PaymentModule } from './payment/payment.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -59,6 +60,7 @@ import { join } from 'path';
     DressModule,
     WishlistModule,
     OrderModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
