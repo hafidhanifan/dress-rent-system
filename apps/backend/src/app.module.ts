@@ -14,6 +14,8 @@ import { DressPhoto } from './dress/dress-photo.entity';
 import { DressSize } from './dress/dress-size.entity';
 import { WishlistModule } from './wishlist/wishlist.module';
 import { Wishlist } from './wishlist/wishlist.entity';
+import { OrderModule } from './order/order.module';
+import { Order } from './order/order.entity';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
@@ -38,7 +40,15 @@ import { join } from 'path';
         username: config.get('DATABASE_USER'),
         password: config.get('DATABASE_PASSWORD'),
         database: config.get('DATABASE_NAME'),
-        entities: [User, Category, Dress, DressPhoto, DressSize, Wishlist], // daftarkan semua entity di sini
+        entities: [
+          User,
+          Category,
+          Dress,
+          DressPhoto,
+          DressSize,
+          Wishlist,
+          Order,
+        ], // daftarkan semua entity di sini
         synchronize: true, // ⚠️ hanya untuk development! matikan di production
       }),
     }),
@@ -48,6 +58,7 @@ import { join } from 'path';
     CategoryModule,
     DressModule,
     WishlistModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService],
