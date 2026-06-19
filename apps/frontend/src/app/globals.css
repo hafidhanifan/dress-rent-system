@@ -3,6 +3,22 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Admin color theme */
+  --admin-bg: #f5f0ea;
+  --admin-sidebar-bg: #ede7de;
+  --admin-card-bg: rgba(0, 0, 0, 0.02);
+  --admin-topbar-bg: #f5f0ea;
+  --admin-border: rgba(0, 0, 0, 0.08);
+  --admin-text: #2c2825;
+  --admin-text-muted: #8c7e6e;
+  --admin-text-faint: #b8aa98;
+  --admin-accent: #8b6f47;
+  --admin-accent-bg: rgba(139, 111, 71, 0.08);
+  --admin-accent-border: rgba(139, 111, 71, 0.25);
+  --admin-success: #4a7c5a;
+  --admin-danger: #c05050;
+  --admin-warning: #b08040;
 }
 
 @theme inline {
@@ -26,14 +42,6 @@
 .animate-scroll-line {
   animation: scroll-line 1.5s ease-in-out infinite;
 }
-
-/* dark mode */
-/* @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-} */
 
 body {
   background: var(--background);

@@ -133,8 +133,8 @@ export default function Sidebar({
       `}
       style={{
         width: 220,
-        background: "#080807",
-        borderRight: "1px solid rgba(255,255,255,0.06)",
+        background: "#ede7de",
+        borderRight: "1px solid rgba(0,0,0,0.08)",
       }}
     >
       {/* Logo */}
@@ -150,7 +150,7 @@ export default function Sidebar({
               fontWeight: 300,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "#e8d5b0",
+              color: "#2c2825",
             }}
           >
             Naia Dress
@@ -160,7 +160,7 @@ export default function Sidebar({
               fontSize: 9,
               letterSpacing: "0.3em",
               textTransform: "uppercase",
-              color: "#4a4640",
+              color: "#8c7e6e",
               marginTop: 2,
             }}
           >
