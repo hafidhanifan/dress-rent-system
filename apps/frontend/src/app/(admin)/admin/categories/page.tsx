@@ -39,9 +39,9 @@ type DelState = { open: false } | { open: true; category: Category };
 // ─────────────────────────────────────────────────────────────
 // Konstanta
 // ─────────────────────────────────────────────────────────────
-const GOLD = "#d4b478";
-const BORDER = "rgba(255,255,255,0.07)";
-const CARD = "rgba(255,255,255,0.03)";
+const GOLD = "var(--admin-accent)";
+const BORDER = "var(--admin-border)";
+const CARD = "var(--admin-card-bg)";
 const API = process.env.NEXT_PUBLIC_API_URL;
 
 // Helper: ambil pesan error dari response NestJS
@@ -211,7 +211,7 @@ export default function CategoriesPage() {
               fontSize: 10,
               letterSpacing: "0.25em",
               textTransform: "uppercase",
-              color: "#4a4440",
+              color: "var(--admin-text-faint)",
             }}
           >
             Kelola
@@ -221,7 +221,7 @@ export default function CategoriesPage() {
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: "clamp(1.6rem, 3vw, 2rem)",
               fontWeight: 300,
-              color: "#e8ddc8",
+              color: "var(--admin-text)",
             }}
           >
             Categories
@@ -234,9 +234,9 @@ export default function CategoriesPage() {
             disabled={loading}
             title="Refresh data"
             style={{
-              background: "rgba(255,255,255,0.03)",
+              background: "var(--admin-border)",
               border: `1px solid ${BORDER}`,
-              color: "#4a4440",
+              color: "var(--admin-text-faint)",
               padding: "9px 12px",
               borderRadius: 3,
               cursor: loading ? "not-allowed" : "pointer",
@@ -245,7 +245,9 @@ export default function CategoriesPage() {
             onMouseOver={(e) =>
               !loading && (e.currentTarget.style.color = "#9a8a70")
             }
-            onMouseOut={(e) => (e.currentTarget.style.color = "#4a4440")}
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--admin-text-faint)")
+            }
           >
             <svg
               width="14"
@@ -391,7 +393,7 @@ export default function CategoriesPage() {
                 fontSize: 9,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-faint)",
                 marginBottom: 10,
               }}
             >
@@ -402,7 +404,7 @@ export default function CategoriesPage() {
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "1.8rem",
                 fontWeight: 300,
-                color: "#e8ddc8",
+                color: "var(--admin-text)",
                 lineHeight: 1,
               }}
             >
@@ -435,12 +437,12 @@ export default function CategoriesPage() {
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: 16,
               fontWeight: 300,
-              color: "#c8baa0",
+              color: "var(--admin-text)",
             }}
           >
             Semua Kategori
           </p>
-          <p style={{ fontSize: 10, color: "#3a3430" }}>
+          <p style={{ fontSize: 10, color: "var(--admin-text-faint)" }}>
             {sorted.length} kategori
           </p>
         </div>
@@ -461,7 +463,7 @@ export default function CategoriesPage() {
                 height="24"
                 fill="none"
                 viewBox="0 0 24 24"
-                stroke="#4a4440"
+                stroke="var(--admin-text-faint)"
                 strokeWidth={1.5}
                 style={{ animation: "spin 1s linear infinite" }}
               >
@@ -474,7 +476,7 @@ export default function CategoriesPage() {
               <p
                 style={{
                   fontSize: 12,
-                  color: "#4a4440",
+                  color: "var(--admin-text-faint)",
                   letterSpacing: "0.1em",
                 }}
               >
@@ -485,7 +487,13 @@ export default function CategoriesPage() {
         ) : sorted.length === 0 && !error ? (
           /* Empty state */
           <div style={{ padding: "48px", textAlign: "center" }}>
-            <p style={{ fontSize: 13, color: "#3a3430", marginBottom: 12 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--admin-text-faint)",
+                marginBottom: 12,
+              }}
+            >
               Belum ada kategori
             </p>
             <button
@@ -515,7 +523,7 @@ export default function CategoriesPage() {
               }}
             >
               <thead>
-                <tr style={{ background: "rgba(0,0,0,0.2)" }}>
+                <tr style={{ background: "rgba(0,0,0,0.05)" }}>
                   {[
                     "Order",
                     "Nama",
@@ -533,7 +541,7 @@ export default function CategoriesPage() {
                         fontSize: 9,
                         letterSpacing: "0.2em",
                         textTransform: "uppercase",
-                        color: "#3a3430",
+                        color: "var(--admin-text-muted)",
                         fontWeight: 400,
                         borderBottom: `1px solid ${BORDER}`,
                       }}
@@ -548,12 +556,11 @@ export default function CategoriesPage() {
                   <tr
                     key={cat.id}
                     style={{
-                      borderBottom: `1px solid rgba(255,255,255,0.03)`,
+                      borderBottom: `1px solid var(--admin-border)`,
                       transition: "background 0.15s",
                     }}
                     onMouseOver={(e) =>
-                      (e.currentTarget.style.background =
-                        "rgba(255,255,255,0.015)")
+                      (e.currentTarget.style.background = "rgba(0,0,0,0.02)")
                     }
                     onMouseOut={(e) =>
                       (e.currentTarget.style.background = "transparent")
@@ -572,7 +579,7 @@ export default function CategoriesPage() {
                           background: "rgba(255,255,255,0.04)",
                           border: `1px solid ${BORDER}`,
                           fontSize: 11,
-                          color: "#5a5450",
+                          color: "var(--admin-text-muted)",
                         }}
                       >
                         {cat.order}
@@ -581,7 +588,7 @@ export default function CategoriesPage() {
 
                     {/* Nama */}
                     <td style={{ padding: "14px 18px" }}>
-                      <p style={{ fontSize: 13, color: "#c8baa0" }}>
+                      <p style={{ fontSize: 13, color: "var(--admin-text)" }}>
                         {cat.name}
                       </p>
                     </td>
@@ -592,8 +599,8 @@ export default function CategoriesPage() {
                         style={{
                           fontFamily: "monospace",
                           fontSize: 11,
-                          color: "#5a5450",
-                          background: "rgba(255,255,255,0.03)",
+                          color: "var(--admin-text-muted)",
+                          background: "var(--admin-border)",
                           padding: "3px 8px",
                           borderRadius: 3,
                           border: `1px solid rgba(255,255,255,0.05)`,
@@ -609,7 +616,7 @@ export default function CategoriesPage() {
                       <p
                         style={{
                           fontSize: 12,
-                          color: "#4a4440",
+                          color: "var(--admin-text-faint)",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
                           whiteSpace: "nowrap",
@@ -644,8 +651,10 @@ export default function CategoriesPage() {
                           transition: "all 0.2s",
                           background: cat.isActive
                             ? "rgba(52,211,153,0.07)"
-                            : "rgba(255,255,255,0.03)",
-                          color: cat.isActive ? "#34d399" : "#4a4440",
+                            : "var(--admin-border)",
+                          color: cat.isActive
+                            ? "#34d399"
+                            : "var(--admin-text-faint)",
                           outline: `1px solid ${cat.isActive ? "rgba(52,211,153,0.2)" : BORDER}`,
                         }}
                       >
@@ -655,7 +664,9 @@ export default function CategoriesPage() {
                             height: 5,
                             borderRadius: "50%",
                             flexShrink: 0,
-                            background: cat.isActive ? "#34d399" : "#3a3430",
+                            background: cat.isActive
+                              ? "#34d399"
+                              : "var(--admin-text-faint)",
                           }}
                         />
                         {cat.isActive ? "Aktif" : "Nonaktif"}
@@ -667,7 +678,7 @@ export default function CategoriesPage() {
                       style={{
                         padding: "14px 18px",
                         fontSize: 11,
-                        color: "#3a3430",
+                        color: "var(--admin-text-faint)",
                         whiteSpace: "nowrap",
                       }}
                     >
@@ -692,7 +703,7 @@ export default function CategoriesPage() {
                             fontSize: 11,
                             letterSpacing: "0.1em",
                             textTransform: "uppercase",
-                            color: "#5a5450",
+                            color: "var(--admin-text-muted)",
                             padding: 0,
                             transition: "color 0.15s",
                           }}
@@ -700,7 +711,8 @@ export default function CategoriesPage() {
                             (e.currentTarget.style.color = GOLD)
                           }
                           onMouseOut={(e) =>
-                            (e.currentTarget.style.color = "#5a5450")
+                            (e.currentTarget.style.color =
+                              "var(--admin-text-muted)")
                           }
                         >
                           Edit
@@ -841,12 +853,12 @@ function CategoryModal({
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    background: "rgba(255,255,255,0.03)",
-    border: `1px solid rgba(255,255,255,0.08)`,
+    background: "var(--admin-border)",
+    border: `1px solid var(--admin-border)`,
     borderRadius: 3,
     padding: "10px 14px",
     fontSize: 13,
-    color: "#c8baa0",
+    color: "var(--admin-text)",
     outline: "none",
     transition: "border-color 0.2s",
     boxSizing: "border-box",
@@ -874,7 +886,7 @@ function CategoryModal({
         style={{
           width: "100%",
           maxWidth: 480,
-          background: "#141310",
+          background: "var(--admin-bg)",
           border: `1px solid ${BORDER}`,
           borderRadius: 6,
           boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
@@ -896,7 +908,7 @@ function CategoryModal({
                 fontSize: 9,
                 letterSpacing: "0.3em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-faint)",
                 marginBottom: 4,
               }}
             >
@@ -907,7 +919,7 @@ function CategoryModal({
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: 20,
                 fontWeight: 300,
-                color: "#e8ddc8",
+                color: "var(--admin-text)",
               }}
             >
               {mode === "add" ? "Kategori Baru" : category?.name}
@@ -919,11 +931,13 @@ function CategoryModal({
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#3a3430",
+              color: "var(--admin-text-faint)",
               padding: 4,
             }}
             onMouseOver={(e) => (e.currentTarget.style.color = "#7a7060")}
-            onMouseOut={(e) => (e.currentTarget.style.color = "#3a3430")}
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--admin-text-faint)")
+            }
           >
             <svg
               width="18"
@@ -990,7 +1004,7 @@ function CategoryModal({
                 fontSize: 9,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-faint)",
                 marginBottom: 8,
               }}
             >
@@ -1006,7 +1020,7 @@ function CategoryModal({
                 ...inputStyle,
                 borderColor: errors.name
                   ? "rgba(248,113,113,0.5)"
-                  : "rgba(255,255,255,0.08)",
+                  : "var(--admin-border)",
               }}
             />
             {errors.name && (
@@ -1024,11 +1038,14 @@ function CategoryModal({
                 fontSize: 9,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-faint)",
                 marginBottom: 8,
               }}
             >
-              Deskripsi <span style={{ color: "#3a3430" }}>(opsional)</span>
+              Deskripsi{" "}
+              <span style={{ color: "var(--admin-text-faint)" }}>
+                (opsional)
+              </span>
             </label>
             <textarea
               name="description"
@@ -1051,7 +1068,7 @@ function CategoryModal({
                   fontSize: 9,
                   letterSpacing: "0.2em",
                   textTransform: "uppercase",
-                  color: "#4a4440",
+                  color: "var(--admin-text-faint)",
                   marginBottom: 8,
                 }}
               >
@@ -1066,7 +1083,13 @@ function CategoryModal({
                 placeholder="0"
                 style={inputStyle}
               />
-              <p style={{ fontSize: 9, color: "#3a3430", marginTop: 4 }}>
+              <p
+                style={{
+                  fontSize: 9,
+                  color: "var(--admin-text-faint)",
+                  marginTop: 4,
+                }}
+              >
                 Angka kecil = tampil lebih dulu
               </p>
             </div>
@@ -1079,7 +1102,7 @@ function CategoryModal({
                   fontSize: 9,
                   letterSpacing: "0.2em",
                   textTransform: "uppercase",
-                  color: "#4a4440",
+                  color: "var(--admin-text-faint)",
                   marginBottom: 8,
                 }}
               >
@@ -1116,7 +1139,7 @@ function CategoryModal({
                     position: "relative",
                     background: form.isActive
                       ? "rgba(52,211,153,0.3)"
-                      : "rgba(255,255,255,0.08)",
+                      : "var(--admin-border)",
                     border: `1px solid ${form.isActive ? "rgba(52,211,153,0.5)" : BORDER}`,
                     transition: "all 0.2s",
                     flexShrink: 0,
@@ -1130,7 +1153,9 @@ function CategoryModal({
                       width: 12,
                       height: 12,
                       borderRadius: "50%",
-                      background: form.isActive ? "#34d399" : "#3a3430",
+                      background: form.isActive
+                        ? "#34d399"
+                        : "var(--admin-text-faint)",
                       transition: "all 0.2s",
                     }}
                   />
@@ -1138,7 +1163,9 @@ function CategoryModal({
                 <span
                   style={{
                     fontSize: 12,
-                    color: form.isActive ? "#34d399" : "#4a4440",
+                    color: form.isActive
+                      ? "#34d399"
+                      : "var(--admin-text-faint)",
                   }}
                 >
                   {form.isActive ? "Aktif" : "Nonaktif"}
@@ -1167,11 +1194,13 @@ function CategoryModal({
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color: "#4a4440",
+              color: "var(--admin-text-faint)",
               padding: "10px 16px",
             }}
             onMouseOver={(e) => (e.currentTarget.style.color = "#7a7060")}
-            onMouseOut={(e) => (e.currentTarget.style.color = "#4a4440")}
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--admin-text-faint)")
+            }
           >
             Batal
           </button>
@@ -1256,7 +1285,7 @@ function DeleteModal({
         style={{
           width: "100%",
           maxWidth: 380,
-          background: "#141310",
+          background: "var(--admin-bg)",
           border: `1px solid ${BORDER}`,
           borderRadius: 6,
           padding: 28,
@@ -1297,7 +1326,7 @@ function DeleteModal({
             fontFamily: "'Cormorant Garamond', serif",
             fontSize: 20,
             fontWeight: 300,
-            color: "#e8ddc8",
+            color: "var(--admin-text)",
             marginBottom: 8,
           }}
         >
@@ -1306,13 +1335,13 @@ function DeleteModal({
         <p
           style={{
             fontSize: 13,
-            color: "#5a5450",
+            color: "var(--admin-text-muted)",
             lineHeight: 1.6,
             marginBottom: error ? 12 : 24,
           }}
         >
-          <span style={{ color: "#c8baa0" }}>{category.name}</span> akan dihapus
-          permanen dari database dan tidak bisa dikembalikan.
+          <span style={{ color: "var(--admin-text)" }}>{category.name}</span>{" "}
+          akan dihapus permanen dari database dan tidak bisa dikembalikan.
         </p>
 
         {error && (
@@ -1335,7 +1364,7 @@ function DeleteModal({
             style={{
               background: "none",
               border: `1px solid ${BORDER}`,
-              color: "#4a4440",
+              color: "var(--admin-text-faint)",
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
@@ -1344,7 +1373,9 @@ function DeleteModal({
               cursor: "pointer",
             }}
             onMouseOver={(e) => (e.currentTarget.style.color = "#7a7060")}
-            onMouseOut={(e) => (e.currentTarget.style.color = "#4a4440")}
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--admin-text-faint)")
+            }
           >
             Batal
           </button>
