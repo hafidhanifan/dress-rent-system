@@ -56,9 +56,9 @@ type ModalState =
   | { open: true; mode: "edit"; dress: Dress };
 type DelState = { open: false } | { open: true; dress: Dress };
 
-const GOLD = "#d4b478";
-const BORDER = "rgba(255,255,255,0.07)";
-const CARD = "rgba(255,255,255,0.03)";
+const GOLD = "var(--admin-accent)";
+const BORDER = "var(--admin-border)";
+const CARD = "var(--admin-card-bg)";
 const API = process.env.NEXT_PUBLIC_API_URL;
 const SIZE_LABELS = ["XS", "S", "M", "L", "XL", "XXL", "Custom"];
 const emptySize = (): DressSize => ({
@@ -221,7 +221,7 @@ export default function ProductsPage() {
               fontSize: 10,
               letterSpacing: "0.25em",
               textTransform: "uppercase",
-              color: "#4a4440",
+              color: "var(--admin-text-muted)",
             }}
           >
             Kelola
@@ -231,7 +231,7 @@ export default function ProductsPage() {
               fontFamily: "'Cormorant Garamond',serif",
               fontSize: "clamp(1.6rem,3vw,2rem)",
               fontWeight: 300,
-              color: "#e8ddc8",
+              color: "var(--admin-text)",
             }}
           >
             Products
@@ -243,7 +243,7 @@ export default function ProductsPage() {
             style={{
               background: CARD,
               border: `1px solid ${BORDER}`,
-              color: "#4a4440",
+              color: "var(--admin-text-muted)",
               padding: "9px 12px",
               borderRadius: 3,
               cursor: "pointer",
@@ -367,7 +367,7 @@ export default function ProductsPage() {
                 fontSize: 9,
                 letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-muted)",
                 marginBottom: 10,
               }}
             >
@@ -378,7 +378,7 @@ export default function ProductsPage() {
                 fontFamily: "'Cormorant Garamond',serif",
                 fontSize: "1.8rem",
                 fontWeight: 300,
-                color: "#e8ddc8",
+                color: "var(--admin-text)",
                 lineHeight: 1,
               }}
             >
@@ -414,7 +414,7 @@ export default function ProductsPage() {
               left: 12,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "#3a3430",
+              color: "var(--admin-text-faint)",
             }}
           >
             <path
@@ -430,7 +430,7 @@ export default function ProductsPage() {
             onChange={(e) => setSearch(e.target.value)}
             style={{
               width: "100%",
-              background: "rgba(255,255,255,0.03)",
+              background: "rgba(0,0,0,0.03)",
               border: `1px solid ${BORDER}`,
               borderRadius: 3,
               paddingLeft: 34,
@@ -438,7 +438,7 @@ export default function ProductsPage() {
               paddingTop: 8,
               paddingBottom: 8,
               fontSize: 13,
-              color: "#c8baa0",
+              color: "var(--admin-text)",
               outline: "none",
               boxSizing: "border-box",
             }}
@@ -448,7 +448,7 @@ export default function ProductsPage() {
           value={filterCat}
           onChange={(e) => setFilterCat(e.target.value)}
           style={{
-            background: "rgba(255,255,255,0.03)",
+            background: "rgba(0,0,0,0.03)",
             border: `1px solid ${BORDER}`,
             borderRadius: 3,
             padding: "8px 12px",
@@ -469,7 +469,7 @@ export default function ProductsPage() {
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
           style={{
-            background: "rgba(255,255,255,0.03)",
+            background: "rgba(0,0,0,0.03)",
             border: `1px solid ${BORDER}`,
             borderRadius: 3,
             padding: "8px 12px",
@@ -508,23 +508,31 @@ export default function ProductsPage() {
               fontFamily: "'Cormorant Garamond',serif",
               fontSize: 16,
               fontWeight: 300,
-              color: "#c8baa0",
+              color: "var(--admin-text)",
             }}
           >
             Semua Dress
           </p>
-          <p style={{ fontSize: 10, color: "#3a3430" }}>
+          <p style={{ fontSize: 10, color: "var(--admin-text-faint)" }}>
             {filtered.length} dress
           </p>
         </div>
 
         {loading ? (
           <div style={{ padding: 48, textAlign: "center" }}>
-            <p style={{ fontSize: 12, color: "#4a4440" }}>Memuat data...</p>
+            <p style={{ fontSize: 12, color: "var(--admin-text-muted)" }}>
+              Memuat data...
+            </p>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ padding: 48, textAlign: "center" }}>
-            <p style={{ fontSize: 13, color: "#3a3430", marginBottom: 12 }}>
+            <p
+              style={{
+                fontSize: 13,
+                color: "var(--admin-text-faint)",
+                marginBottom: 12,
+              }}
+            >
               Belum ada dress
             </p>
             <button
@@ -552,7 +560,7 @@ export default function ProductsPage() {
               }}
             >
               <thead>
-                <tr style={{ background: "rgba(0,0,0,0.2)" }}>
+                <tr style={{ background: "rgba(0,0,0,0.05)" }}>
                   {[
                     "Foto",
                     "Nama Dress",
@@ -571,7 +579,7 @@ export default function ProductsPage() {
                         fontSize: 9,
                         letterSpacing: "0.2em",
                         textTransform: "uppercase",
-                        color: "#3a3430",
+                        color: "var(--admin-text-faint)",
                         fontWeight: 400,
                         borderBottom: `1px solid ${BORDER}`,
                       }}
@@ -590,12 +598,11 @@ export default function ProductsPage() {
                     <tr
                       key={dress.id}
                       style={{
-                        borderBottom: `1px solid rgba(255,255,255,0.03)`,
+                        borderBottom: `1px solid var(--admin-border)`,
                         transition: "background 0.15s",
                       }}
                       onMouseOver={(e) =>
-                        (e.currentTarget.style.background =
-                          "rgba(255,255,255,0.015)")
+                        (e.currentTarget.style.background = "rgba(0,0,0,0.02)")
                       }
                       onMouseOut={(e) =>
                         (e.currentTarget.style.background = "transparent")
@@ -638,7 +645,7 @@ export default function ProductsPage() {
                                 height="16"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="#3a3430"
+                                stroke="var(--admin-text-faint)"
                                 strokeWidth={1}
                               >
                                 <path
@@ -655,7 +662,7 @@ export default function ProductsPage() {
                         <p
                           style={{
                             fontSize: 13,
-                            color: "#c8baa0",
+                            color: "var(--admin-text)",
                             marginBottom: 3,
                           }}
                         >
@@ -664,7 +671,7 @@ export default function ProductsPage() {
                         <p
                           style={{
                             fontSize: 9,
-                            color: "#3a3430",
+                            color: "var(--admin-text-faint)",
                             fontFamily: "monospace",
                           }}
                         >
@@ -677,7 +684,7 @@ export default function ProductsPage() {
                           fontSize: 11,
                           letterSpacing: "0.1em",
                           textTransform: "uppercase",
-                          color: "#5a5450",
+                          color: "var(--admin-text-muted)",
                         }}
                       >
                         {dress.category?.name ?? "—"}
@@ -686,7 +693,7 @@ export default function ProductsPage() {
                         style={{
                           padding: "12px 16px",
                           fontSize: 13,
-                          color: "#c8baa0",
+                          color: "var(--admin-text)",
                         }}
                       >
                         {formatPrice(dress.pricePerDay)}
@@ -704,14 +711,19 @@ export default function ProductsPage() {
                                 borderRadius: 3,
                                 background: "rgba(255,255,255,0.04)",
                                 border: `1px solid ${BORDER}`,
-                                color: "#5a5450",
+                                color: "var(--admin-text-muted)",
                               }}
                             >
                               {s.label}
                             </span>
                           ))}
                           {(dress.sizes?.length ?? 0) > 4 && (
-                            <span style={{ fontSize: 9, color: "#3a3430" }}>
+                            <span
+                              style={{
+                                fontSize: 9,
+                                color: "var(--admin-text-faint)",
+                              }}
+                            >
                               +{dress.sizes.length - 4}
                             </span>
                           )}
@@ -767,14 +779,15 @@ export default function ProductsPage() {
                               fontSize: 11,
                               letterSpacing: "0.1em",
                               textTransform: "uppercase",
-                              color: "#5a5450",
+                              color: "var(--admin-text-muted)",
                               padding: 0,
                             }}
                             onMouseOver={(e) =>
                               (e.currentTarget.style.color = GOLD)
                             }
                             onMouseOut={(e) =>
-                              (e.currentTarget.style.color = "#5a5450")
+                              (e.currentTarget.style.color =
+                                "var(--admin-text-muted)")
                             }
                           >
                             Edit
@@ -982,12 +995,12 @@ function DressModal({
 
   const inp: React.CSSProperties = {
     width: "100%",
-    background: "rgba(255,255,255,0.03)",
-    border: `1px solid rgba(255,255,255,0.08)`,
+    background: "rgba(0,0,0,0.03)",
+    border: `1px solid var(--admin-border)`,
     borderRadius: 3,
     padding: "9px 12px",
     fontSize: 13,
-    color: "#c8baa0",
+    color: "var(--admin-text)",
     outline: "none",
     boxSizing: "border-box",
     fontFamily: "inherit",
@@ -998,7 +1011,7 @@ function DressModal({
     fontSize: 9,
     letterSpacing: "0.2em",
     textTransform: "uppercase" as const,
-    color: "#4a4440",
+    color: "var(--admin-text-muted)",
     marginBottom: 6,
   };
 
@@ -1032,7 +1045,7 @@ function DressModal({
         style={{
           width: "100%",
           maxWidth: 600,
-          background: "#141310",
+          background: "var(--admin-bg)",
           border: `1px solid ${BORDER}`,
           borderRadius: 6,
           boxShadow: "0 24px 80px rgba(0,0,0,0.7)",
@@ -1058,7 +1071,7 @@ function DressModal({
                 fontSize: 9,
                 letterSpacing: "0.3em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-muted)",
                 marginBottom: 3,
               }}
             >
@@ -1069,7 +1082,7 @@ function DressModal({
                 fontFamily: "'Cormorant Garamond',serif",
                 fontSize: 20,
                 fontWeight: 300,
-                color: "#e8ddc8",
+                color: "var(--admin-text)",
               }}
             >
               {mode === "add" ? "Dress Baru" : dress?.name}
@@ -1081,7 +1094,7 @@ function DressModal({
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#3a3430",
+              color: "var(--admin-text-faint)",
               padding: 4,
             }}
           >
@@ -1123,7 +1136,7 @@ function DressModal({
                 fontSize: 10,
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
-                color: activeTab === t.key ? GOLD : "#4a4440",
+                color: activeTab === t.key ? GOLD : "var(--admin-text-muted)",
                 borderBottom: `2px solid ${activeTab === t.key ? GOLD : "transparent"}`,
                 transition: "all 0.2s",
               }}
@@ -1162,7 +1175,7 @@ function DressModal({
                     ...inp,
                     borderColor: errors.name
                       ? "rgba(248,113,113,0.5)"
-                      : "rgba(255,255,255,0.08)",
+                      : "var(--admin-border)",
                   }}
                 />
                 {errors.name && (
@@ -1189,7 +1202,7 @@ function DressModal({
                       cursor: "pointer",
                       borderColor: errors.categoryId
                         ? "rgba(248,113,113,0.5)"
-                        : "rgba(255,255,255,0.08)",
+                        : "var(--admin-border)",
                     }}
                   >
                     <option value="">Pilih kategori...</option>
@@ -1235,7 +1248,7 @@ function DressModal({
                         top: "50%",
                         transform: "translateY(-50%)",
                         fontSize: 11,
-                        color: "#4a4440",
+                        color: "var(--admin-text-muted)",
                       }}
                     >
                       Rp
@@ -1250,7 +1263,7 @@ function DressModal({
                         paddingLeft: 34,
                         borderColor: errors.pricePerDay
                           ? "rgba(248,113,113,0.5)"
-                          : "rgba(255,255,255,0.08)",
+                          : "var(--admin-border)",
                       }}
                     />
                   </div>
@@ -1347,7 +1360,7 @@ function DressModal({
                         position: "relative",
                         background: form.isActive
                           ? "rgba(52,211,153,0.3)"
-                          : "rgba(255,255,255,0.08)",
+                          : "var(--admin-border)",
                         border: `1px solid ${form.isActive ? "rgba(52,211,153,0.5)" : BORDER}`,
                         transition: "all 0.2s",
                         flexShrink: 0,
@@ -1361,7 +1374,9 @@ function DressModal({
                           width: 12,
                           height: 12,
                           borderRadius: "50%",
-                          background: form.isActive ? "#34d399" : "#3a3430",
+                          background: form.isActive
+                            ? "#34d399"
+                            : "var(--admin-text-faint)",
                           transition: "all 0.2s",
                         }}
                       />
@@ -1369,7 +1384,9 @@ function DressModal({
                     <span
                       style={{
                         fontSize: 12,
-                        color: form.isActive ? "#34d399" : "#4a4440",
+                        color: form.isActive
+                          ? "#34d399"
+                          : "var(--admin-text-muted)",
                       }}
                     >
                       {form.isActive ? "Aktif" : "Nonaktif"}
@@ -1506,7 +1523,10 @@ function DressModal({
                               size.label === l
                                 ? "rgba(212,180,120,0.12)"
                                 : "transparent",
-                            color: size.label === l ? GOLD : "#5a5450",
+                            color:
+                              size.label === l
+                                ? GOLD
+                                : "var(--admin-text-muted)",
                             transition: "all 0.15s",
                           }}
                         >
@@ -1558,7 +1578,7 @@ function DressModal({
                                 top: "50%",
                                 transform: "translateY(-50%)",
                                 fontSize: 9,
-                                color: "#3a3430",
+                                color: "var(--admin-text-faint)",
                               }}
                             >
                               cm
@@ -1685,7 +1705,7 @@ function DressModal({
                 <div
                   onClick={() => fileRef.current?.click()}
                   style={{
-                    border: `2px dashed rgba(255,255,255,0.08)`,
+                    border: `2px dashed var(--admin-border)`,
                     borderRadius: 4,
                     padding: "24px 16px",
                     textAlign: "center",
@@ -1697,8 +1717,7 @@ function DressModal({
                       "rgba(212,180,120,0.3)")
                   }
                   onMouseOut={(e) =>
-                    (e.currentTarget.style.borderColor =
-                      "rgba(255,255,255,0.08)")
+                    (e.currentTarget.style.borderColor = "var(--admin-border)")
                   }
                 >
                   <svg
@@ -1706,7 +1725,7 @@ function DressModal({
                     height="24"
                     fill="none"
                     viewBox="0 0 24 24"
-                    stroke="#3a3430"
+                    stroke="var(--admin-text-faint)"
                     strokeWidth={1}
                     style={{ margin: "0 auto 8px" }}
                   >
@@ -1717,11 +1736,15 @@ function DressModal({
                     />
                   </svg>
                   <p
-                    style={{ fontSize: 12, color: "#4a4440", marginBottom: 4 }}
+                    style={{
+                      fontSize: 12,
+                      color: "var(--admin-text-muted)",
+                      marginBottom: 4,
+                    }}
                   >
                     Klik untuk pilih foto
                   </p>
-                  <p style={{ fontSize: 10, color: "#3a3430" }}>
+                  <p style={{ fontSize: 10, color: "var(--admin-text-faint)" }}>
                     JPG, PNG, WEBP · Maks 5MB · Maks 10 foto
                   </p>
                   <input
@@ -1813,7 +1836,13 @@ function DressModal({
                   </div>
                 )}
                 {mode === "add" && newPhotos.length > 0 && (
-                  <p style={{ fontSize: 10, color: "#4a4440", marginTop: 8 }}>
+                  <p
+                    style={{
+                      fontSize: 10,
+                      color: "var(--admin-text-muted)",
+                      marginTop: 8,
+                    }}
+                  >
                     Foto pertama akan otomatis dijadikan cover thumbnail.
                   </p>
                 )}
@@ -1842,7 +1871,7 @@ function DressModal({
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color: "#4a4440",
+              color: "var(--admin-text-muted)",
               padding: "10px 16px",
             }}
           >
@@ -1911,7 +1940,7 @@ function DeleteModal({
         style={{
           width: "100%",
           maxWidth: 380,
-          background: "#141310",
+          background: "var(--admin-bg)",
           border: `1px solid ${BORDER}`,
           borderRadius: 6,
           padding: 28,
@@ -1951,7 +1980,7 @@ function DeleteModal({
             fontFamily: "'Cormorant Garamond',serif",
             fontSize: 20,
             fontWeight: 300,
-            color: "#e8ddc8",
+            color: "var(--admin-text)",
             marginBottom: 8,
           }}
         >
@@ -1960,13 +1989,13 @@ function DeleteModal({
         <p
           style={{
             fontSize: 13,
-            color: "#5a5450",
+            color: "var(--admin-text-muted)",
             lineHeight: 1.6,
             marginBottom: error ? 12 : 24,
           }}
         >
-          <span style={{ color: "#c8baa0" }}>{name}</span> beserta semua foto
-          dan ukurannya akan dihapus permanen.
+          <span style={{ color: "var(--admin-text)" }}>{name}</span> beserta
+          semua foto dan ukurannya akan dihapus permanen.
         </p>
         {error && (
           <div
@@ -1987,7 +2016,7 @@ function DeleteModal({
             style={{
               background: "none",
               border: `1px solid ${BORDER}`,
-              color: "#4a4440",
+              color: "var(--admin-text-muted)",
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",

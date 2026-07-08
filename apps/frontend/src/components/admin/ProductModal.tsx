@@ -22,8 +22,8 @@ const CATEGORIES = [
 ];
 const SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
 
-const BORDER = "rgba(255,255,255,0.08)";
-const INPUT_BG = "rgba(255,255,255,0.03)";
+const BORDER = "var(--admin-border)";
+const INPUT_BG = "rgba(0,0,0,0.03)";
 
 function Field({
   label,
@@ -42,7 +42,7 @@ function Field({
           fontSize: 9,
           letterSpacing: "0.2em",
           textTransform: "uppercase",
-          color: "#4a4440",
+          color: "var(--admin-text-faint)",
           marginBottom: 8,
         }}
       >
@@ -63,7 +63,7 @@ const inputStyle = (hasError?: boolean): React.CSSProperties => ({
   borderRadius: 3,
   padding: "10px 14px",
   fontSize: 13,
-  color: "#c8baa0",
+  color: "var(--admin-text)",
   outline: "none",
   transition: "border-color 0.2s",
   boxSizing: "border-box",
@@ -151,7 +151,7 @@ export default function ProductModal({
         style={{
           width: "100%",
           maxWidth: 520,
-          background: "#141310",
+          background: "var(--admin-bg)",
           border: `1px solid ${BORDER}`,
           borderRadius: 6,
           boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
@@ -177,7 +177,7 @@ export default function ProductModal({
                 fontSize: 9,
                 letterSpacing: "0.3em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-faint)",
                 marginBottom: 4,
               }}
             >
@@ -188,7 +188,7 @@ export default function ProductModal({
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: 20,
                 fontWeight: 300,
-                color: "#e8ddc8",
+                color: "var(--admin-text)",
               }}
             >
               {mode === "add" ? "Produk Baru" : form.name}
@@ -197,7 +197,7 @@ export default function ProductModal({
           <button
             onClick={onClose}
             style={{
-              color: "#3a3430",
+              color: "var(--admin-text-faint)",
               padding: 4,
               background: "none",
               border: "none",
@@ -299,7 +299,7 @@ export default function ProductModal({
                     top: "50%",
                     transform: "translateY(-50%)",
                     fontSize: 11,
-                    color: "#4a4440",
+                    color: "var(--admin-text-faint)",
                   }}
                 >
                   Rp
@@ -376,7 +376,7 @@ export default function ProductModal({
                           ? s === "available"
                             ? "#34d399"
                             : "#f87171"
-                          : "#4a4440",
+                          : "var(--admin-text-faint)",
                       letterSpacing: "0.05em",
                     }}
                   >
@@ -419,7 +419,7 @@ export default function ProductModal({
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
-              color: "#4a4440",
+              color: "var(--admin-text-faint)",
               padding: "10px 16px",
             }}
             className="hover:!text-[#7a7060] transition-colors"
@@ -436,7 +436,7 @@ export default function ProductModal({
             style={{
               background: "rgba(212,180,120,0.12)",
               border: "1px solid rgba(212,180,120,0.3)",
-              color: "#d4b478",
+              color: "var(--admin-accent)",
               fontSize: 11,
               letterSpacing: "0.15em",
               textTransform: "uppercase",
