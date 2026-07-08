@@ -152,14 +152,22 @@ const topProducts = [
 
 const statusCfg: Record<string, { bg: string; color: string; dot: string }> = {
   Active: { bg: "rgba(52,211,153,0.08)", color: "#34d399", dot: "#34d399" },
-  Returned: { bg: "rgba(255,255,255,0.04)", color: "#5a5450", dot: "#3a3430" },
-  Pending: { bg: "rgba(212,180,120,0.1)", color: "#d4b478", dot: "#d4b478" },
+  Returned: {
+    bg: "rgba(255,255,255,0.04)",
+    color: "var(--admin-text-muted)",
+    dot: "var(--admin-text-faint)",
+  },
+  Pending: {
+    bg: "rgba(212,180,120,0.1)",
+    color: "var(--admin-accent)",
+    dot: "var(--admin-accent)",
+  },
 };
 
 // Warna aksen emas
-const GOLD = "#d4b478";
-const CARD = "rgba(255,255,255,0.03)";
-const BORDER = "rgba(255,255,255,0.07)";
+const GOLD = "var(--admin-accent)";
+const CARD = "var(--admin-card-bg)";
+const BORDER = "var(--admin-border)";
 
 export default function DashboardPage() {
   return (
@@ -171,7 +179,7 @@ export default function DashboardPage() {
             fontSize: 11,
             letterSpacing: "0.25em",
             textTransform: "uppercase",
-            color: "#4a4440",
+            color: "var(--admin-text-faint)",
           }}
         >
           Selamat datang kembali
@@ -181,7 +189,7 @@ export default function DashboardPage() {
             fontFamily: "'Cormorant Garamond', serif",
             fontSize: "clamp(1.6rem, 3vw, 2rem)",
             fontWeight: 300,
-            color: "#e8ddc8",
+            color: "var(--admin-text)",
             lineHeight: 1.2,
             marginTop: 4,
           }}
@@ -238,12 +246,12 @@ export default function DashboardPage() {
                   fontSize: 9,
                   letterSpacing: "0.2em",
                   textTransform: "uppercase",
-                  color: "#4a4440",
+                  color: "var(--admin-text-faint)",
                 }}
               >
                 {s.label}
               </p>
-              <span style={{ color: "#3a3430" }}>{s.icon}</span>
+              <span style={{ color: "var(--admin-text-faint)" }}>{s.icon}</span>
             </div>
 
             <p
@@ -251,7 +259,7 @@ export default function DashboardPage() {
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: "clamp(1.5rem, 3vw, 2rem)",
                 fontWeight: 300,
-                color: "#e8ddc8",
+                color: "var(--admin-text)",
                 lineHeight: 1,
                 marginBottom: 8,
               }}
@@ -273,7 +281,9 @@ export default function DashboardPage() {
               >
                 {s.up ? "↑" : "↓"} {s.change}
               </span>
-              <span style={{ fontSize: 10, color: "#3a3430" }}>{s.sub}</span>
+              <span style={{ fontSize: 10, color: "var(--admin-text-faint)" }}>
+                {s.sub}
+              </span>
             </div>
           </div>
         ))}
@@ -307,7 +317,7 @@ export default function DashboardPage() {
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: 16,
                 fontWeight: 300,
-                color: "#c8baa0",
+                color: "var(--admin-text)",
               }}
             >
               Recent Orders
@@ -318,9 +328,9 @@ export default function DashboardPage() {
                 fontSize: 10,
                 letterSpacing: "0.15em",
                 textTransform: "uppercase",
-                color: "#4a4440",
+                color: "var(--admin-text-faint)",
               }}
-              className="hover:!text-[#d4b478] transition-colors"
+              className="hover:!text-[var(--admin-accent)] transition-colors"
             >
               View All →
             </a>
@@ -352,7 +362,7 @@ export default function DashboardPage() {
                         fontSize: 9,
                         letterSpacing: "0.2em",
                         textTransform: "uppercase",
-                        color: "#3a3430",
+                        color: "var(--admin-text-faint)",
                         fontWeight: 400,
                         borderBottom: `1px solid ${BORDER}`,
                       }}
@@ -366,14 +376,14 @@ export default function DashboardPage() {
                 {orders.map((o, i) => (
                   <tr
                     key={i}
-                    style={{ borderBottom: `1px solid rgba(255,255,255,0.03)` }}
-                    className="hover:bg-white/[0.02] transition-colors"
+                    style={{ borderBottom: `1px solid var(--admin-border)` }}
+                    className="hover:bg-black/[0.02] transition-colors"
                   >
                     <td
                       style={{
                         padding: "14px 20px",
                         fontSize: 11,
-                        color: "#4a4440",
+                        color: "var(--admin-text-faint)",
                         fontFamily: "monospace",
                       }}
                     >
@@ -383,7 +393,7 @@ export default function DashboardPage() {
                       style={{
                         padding: "14px 20px",
                         fontSize: 12,
-                        color: "#c8baa0",
+                        color: "var(--admin-text)",
                       }}
                     >
                       {o.customer}
@@ -392,7 +402,7 @@ export default function DashboardPage() {
                       style={{
                         padding: "14px 20px",
                         fontSize: 11,
-                        color: "#5a5450",
+                        color: "var(--admin-text-muted)",
                       }}
                     >
                       {o.product}
@@ -401,7 +411,7 @@ export default function DashboardPage() {
                       style={{
                         padding: "14px 20px",
                         fontSize: 11,
-                        color: "#3a3430",
+                        color: "var(--admin-text-faint)",
                       }}
                     >
                       {o.date}
@@ -438,7 +448,7 @@ export default function DashboardPage() {
                       style={{
                         padding: "14px 20px",
                         fontSize: 12,
-                        color: "#c8baa0",
+                        color: "var(--admin-text)",
                       }}
                     >
                       {o.amount}
@@ -469,7 +479,7 @@ export default function DashboardPage() {
                 fontFamily: "'Cormorant Garamond', serif",
                 fontSize: 16,
                 fontWeight: 300,
-                color: "#c8baa0",
+                color: "var(--admin-text)",
               }}
             >
               Top Products
@@ -483,7 +493,7 @@ export default function DashboardPage() {
                   padding: "14px 20px",
                   borderBottom:
                     i < topProducts.length - 1
-                      ? `1px solid rgba(255,255,255,0.03)`
+                      ? `1px solid var(--admin-border)`
                       : "none",
                 }}
               >
@@ -498,7 +508,7 @@ export default function DashboardPage() {
                     <p
                       style={{
                         fontSize: 12,
-                        color: "#c8baa0",
+                        color: "var(--admin-text)",
                         marginBottom: 2,
                       }}
                     >
@@ -509,19 +519,21 @@ export default function DashboardPage() {
                         fontSize: 9,
                         letterSpacing: "0.15em",
                         textTransform: "uppercase",
-                        color: "#3a3430",
+                        color: "var(--admin-text-faint)",
                       }}
                     >
                       {p.cat}
                     </p>
                   </div>
-                  <p style={{ fontSize: 11, color: "#d4b478" }}>{p.rentals}×</p>
+                  <p style={{ fontSize: 11, color: "var(--admin-accent)" }}>
+                    {p.rentals}×
+                  </p>
                 </div>
                 {/* Progress bar */}
                 <div
                   style={{
                     height: 2,
-                    background: "rgba(255,255,255,0.05)",
+                    background: "var(--admin-border)",
                     borderRadius: 2,
                   }}
                 >
