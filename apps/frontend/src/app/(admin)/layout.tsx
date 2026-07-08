@@ -14,7 +14,7 @@ export default function AdminLayout({
   return (
     <div
       className="min-h-screen flex"
-      style={{ background: "#f5f0ea", color: "#e8e2d9" }}
+      style={{ background: "var(--admin-bg)", color: "var(--admin-text)" }}
     >
       {/* Overlay mobile */}
       {sidebarOpen && (

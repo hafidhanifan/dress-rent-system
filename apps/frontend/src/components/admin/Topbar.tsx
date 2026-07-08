@@ -22,9 +22,9 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
     <header
       className="sticky top-0 z-10 flex items-center justify-between px-5 md:px-7 py-4 gap-4"
       style={{
-        background: "rgba(15,14,13,0.85)",
+        background: "var(--admin-topbar-bg)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
+        borderBottom: "1px solid var(--admin-border)",
       }}
     >
       {/* Kiri */}
@@ -32,7 +32,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         <button
           onClick={onMenuClick}
           className="lg:hidden transition-colors"
-          style={{ color: "#4a4440" }}
+          style={{ color: "var(--admin-text-muted)" }}
         >
           <svg
             width="20"
@@ -55,7 +55,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
               fontFamily: "'Cormorant Garamond', serif",
               fontSize: "clamp(1.2rem, 2.5vw, 1.5rem)",
               fontWeight: 300,
-              color: "#e8ddc8",
+              color: "var(--admin-text)",
               lineHeight: 1,
             }}
           >
@@ -64,7 +64,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           <p
             style={{
               fontSize: 10,
-              color: "#3a3630",
+              color: "var(--admin-text-faint)",
               marginTop: 3,
               letterSpacing: "0.05em",
             }}
@@ -80,7 +80,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         {/* Search */}
         <button
           className="transition-colors p-2 rounded-sm hover:bg-white/5"
-          style={{ color: "#4a4440" }}
+          style={{ color: "var(--admin-text-faint)" }}
         >
           <svg
             width="16"
@@ -100,7 +100,7 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
         {/* Bell */}
         <button
           className="relative transition-colors p-2 rounded-sm hover:bg-white/5"
-          style={{ color: "#4a4440" }}
+          style={{ color: "var(--admin-text-faint)" }}
         >
           <svg
             width="16"
@@ -118,18 +118,24 @@ export default function Topbar({ onMenuClick }: { onMenuClick: () => void }) {
           </svg>
           <span
             className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full"
-            style={{ background: "#d4b478" }}
+            style={{ background: "var(--admin-accent)" }}
           />
         </button>
         {/* Avatar */}
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center ml-1 cursor-pointer"
           style={{
-            background: "rgba(212,180,120,0.1)",
-            border: "1px solid rgba(212,180,120,0.25)",
+            background: "var(--admin-accent-bg)",
+            border: "1px solid var(--admin-accent-border)",
           }}
         >
-          <span style={{ fontFamily: "serif", fontSize: 13, color: "#d4b478" }}>
+          <span
+            style={{
+              fontFamily: "serif",
+              fontSize: 13,
+              color: "var(--admin-accent)",
+            }}
+          >
             A
           </span>
         </div>

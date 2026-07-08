@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { clearAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 
 const nav = [
   {
@@ -63,12 +65,7 @@ const nav = [
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M6 6h.008v.008H6V6z"
+          d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z"
         />
       </svg>
     ),
@@ -123,6 +120,13 @@ export default function Sidebar({
   onClose: () => void;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
+
+  const handleLogout = () => {
+    clearAuth();
+    router.push("/auth/login");
+  };
 
   return (
     <aside
@@ -133,14 +137,14 @@ export default function Sidebar({
       `}
       style={{
         width: 220,
-        background: "#ede7de",
-        borderRight: "1px solid rgba(0,0,0,0.08)",
+        background: "var(--admin-sidebar-bg)",
+        borderRight: "1px solid var(--admin-border)",
       }}
     >
       {/* Logo */}
       <div
         className="px-6 pt-8 pb-7"
-        style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+        style={{ borderBottom: "1px solid var(--admin-border)" }}
       >
         <Link href="/" onClick={onClose} className="block">
           <p
@@ -150,7 +154,7 @@ export default function Sidebar({
               fontWeight: 300,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "#2c2825",
+              color: "var(--admin-text)",
             }}
           >
             Naia Dress
@@ -160,7 +164,7 @@ export default function Sidebar({
               fontSize: 9,
               letterSpacing: "0.3em",
               textTransform: "uppercase",
-              color: "#8c7e6e",
+              color: "var(--admin-text-faint)",
               marginTop: 2,
             }}
           >
@@ -176,7 +180,7 @@ export default function Sidebar({
             fontSize: 8,
             letterSpacing: "0.3em",
             textTransform: "uppercase",
-            color: "#3a3630",
+            color: "var(--admin-text-faint)",
             padding: "0 10px",
             marginBottom: 8,
           }}
@@ -194,17 +198,20 @@ export default function Sidebar({
                   className="flex items-center gap-3 px-3 py-2.5 rounded-sm transition-all duration-200 group"
                   style={{
                     background: active
-                      ? "rgba(212,180,120,0.12)"
+                      ? "var(--admin-accent-bg)"
                       : "transparent",
-                    color: active ? "#d4b478" : "#5a5450",
+                    color: active
+                      ? "var(--admin-accent)"
+                      : "var(--admin-text-muted)",
                   }}
                 >
                   <span
                     style={{
-                      color: active ? "#d4b478" : "#3a3630",
+                      color: active
+                        ? "var(--admin-accent)"
+                        : "var(--admin-text-faint)",
                       transition: "color 0.2s",
                     }}
-                    className="group-hover:!text-[#8a7a60]"
                   >
                     {item.icon}
                   </span>
@@ -215,14 +222,13 @@ export default function Sidebar({
                       fontWeight: active ? 400 : 300,
                       transition: "color 0.2s",
                     }}
-                    className={!active ? "group-hover:!text-[#9a8a70]" : ""}
                   >
                     {item.label}
                   </span>
                   {active && (
                     <span
                       className="ml-auto w-1 h-1 rounded-full"
-                      style={{ background: "#d4b478" }}
+                      style={{ background: "var(--admin-accent)" }}
                     />
                   )}
                 </Link>
@@ -232,36 +238,48 @@ export default function Sidebar({
         </ul>
       </nav>
 
-      {/* User */}
+      {/* User info + logout */}
       <div
         className="px-4 py-5"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+        style={{ borderTop: "1px solid var(--admin-border)" }}
       >
         <div className="flex items-center gap-3">
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
             style={{
-              background: "rgba(212,180,120,0.15)",
-              border: "1px solid rgba(212,180,120,0.3)",
+              background: "var(--admin-accent-bg)",
+              border: "1px solid var(--admin-accent-border)",
             }}
           >
             <span
-              style={{ fontFamily: "serif", fontSize: 12, color: "#d4b478" }}
+              style={{
+                fontFamily: "serif",
+                fontSize: 12,
+                color: "var(--admin-accent)",
+              }}
             >
-              A
+              {user?.fullName?.charAt(0).toUpperCase() ?? "A"}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <p style={{ fontSize: 11, color: "#7a6e60" }} className="truncate">
-              Admin
+            <p
+              style={{ fontSize: 11, color: "var(--admin-text-muted)" }}
+              className="truncate"
+            >
+              {user?.fullName ?? "Admin"}
             </p>
-            <p style={{ fontSize: 9, color: "#3a3430" }} className="truncate">
-              admin@naiadress.com
+            <p
+              style={{ fontSize: 9, color: "var(--admin-text-faint)" }}
+              className="truncate"
+            >
+              {user?.email ?? "admin@naiadress.com"}
             </p>
           </div>
           <button
-            style={{ color: "#3a3430" }}
-            className="hover:!text-[#7a6e60] transition-colors"
+            onClick={handleLogout}
+            style={{ color: "var(--admin-text-faint)" }}
+            className="hover:text-stone-600 transition-colors"
+            title="Logout"
           >
             <svg
               width="14"
