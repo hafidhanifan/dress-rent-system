@@ -1,59 +1,40 @@
 "use client";
 
+// src/app/(admin)/admin/categories/page.tsx
+// Setelah dipecah: hanya berisi state utama + tabel
+// Modal dipindah ke _components/
+
 import { useState, useEffect, useCallback } from "react";
+import CategoryModal, {
+  Category,
+  CategoryFormData,
+} from "./_components/CategoryModal";
+import DeleteCategoryModal from "./_components/DeleteCategoryModal";
 
-// ─────────────────────────────────────────────────────────────
-// Types — sesuai persis dengan response dari NestJS backend
-// ─────────────────────────────────────────────────────────────
-type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  description: string;
-  order: number;
-  isActive: boolean;
-  dressCount?: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type CategoryFormData = {
-  name: string;
-  description: string;
-  order: string;
-  isActive: boolean;
-};
-
-type ApiError = {
-  message: string | string[];
-  statusCode: number;
-};
-
-type ModalState =
-  | { open: false }
-  | { open: true; mode: "add" }
-  | { open: true; mode: "edit"; category: Category };
-
-type DelState = { open: false } | { open: true; category: Category };
-
-// ─────────────────────────────────────────────────────────────
-// Konstanta
-// ─────────────────────────────────────────────────────────────
 const GOLD = "var(--admin-accent)";
 const BORDER = "var(--admin-border)";
 const CARD = "var(--admin-card-bg)";
 const API = process.env.NEXT_PUBLIC_API_URL;
 
-// Helper: ambil pesan error dari response NestJS
-// NestJS kadang kirim message sebagai string, kadang array of strings
+type ApiError = { message: string | string[]; statusCode: number };
+type ModalState =
+  | { open: false }
+  | { open: true; mode: "add" }
+  | { open: true; mode: "edit"; category: Category };
+type DelState = { open: false } | { open: true; category: Category };
+
 function getErrorMessage(err: ApiError): string {
   if (Array.isArray(err.message)) return err.message[0];
   return err.message;
 }
 
-// ─────────────────────────────────────────────────────────────
-// Main Component
-// ─────────────────────────────────────────────────────────────
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,16 +42,14 @@ export default function CategoriesPage() {
   const [modal, setModal] = useState<ModalState>({ open: false });
   const [del, setDel] = useState<DelState>({ open: false });
 
-  // ── Fetch semua kategori dari backend ──────────────────────
   const fetchCategories = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
       const res = await fetch(`${API}/categories`);
-      if (!res.ok) throw new Error("Gagal mengambil data kategori");
-      const data: Category[] = await res.json();
-      setCategories(data);
-    } catch (e) {
+      if (!res.ok) throw new Error();
+      setCategories(await res.json());
+    } catch {
       setError(
         "Tidak dapat terhubung ke server. Pastikan backend sudah berjalan.",
       );
@@ -83,7 +62,6 @@ export default function CategoriesPage() {
     fetchCategories();
   }, [fetchCategories]);
 
-  // ── CREATE ─────────────────────────────────────────────────
   const handleCreate = async (
     form: CategoryFormData,
   ): Promise<string | null> => {
@@ -97,20 +75,12 @@ export default function CategoriesPage() {
         isActive: form.isActive,
       }),
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      // Kembalikan pesan error ke modal supaya ditampilkan di sana
-      return getErrorMessage(data as ApiError);
-    }
-
-    // Tambahkan ke state lokal — tidak perlu refetch seluruh list
+    if (!res.ok) return getErrorMessage(data as ApiError);
     setCategories((prev) => [...prev, data]);
-    return null; // null = sukses
+    return null;
   };
 
-  // ── UPDATE ─────────────────────────────────────────────────
   const handleUpdate = async (
     id: number,
     form: CategoryFormData,
@@ -125,77 +95,46 @@ export default function CategoriesPage() {
         isActive: form.isActive,
       }),
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      return getErrorMessage(data as ApiError);
-    }
-
+    if (!res.ok) return getErrorMessage(data as ApiError);
     setCategories((prev) => prev.map((c) => (c.id === id ? data : c)));
     return null;
   };
 
-  // ── TOGGLE ACTIVE ──────────────────────────────────────────
   const handleToggle = async (category: Category) => {
-    // Optimistic update — update UI dulu, baru kirim ke server
-    // Kalau gagal, kembalikan ke state semula
     setCategories((prev) =>
       prev.map((c) =>
         c.id === category.id ? { ...c, isActive: !c.isActive } : c,
       ),
     );
-
     const res = await fetch(`${API}/categories/${category.id}/toggle-active`, {
       method: "PATCH",
     });
-
-    if (!res.ok) {
-      // Rollback jika gagal
+    if (!res.ok)
       setCategories((prev) =>
         prev.map((c) =>
           c.id === category.id ? { ...c, isActive: category.isActive } : c,
         ),
       );
-    }
   };
 
-  // ── DELETE ─────────────────────────────────────────────────
   const handleDelete = async (category: Category): Promise<string | null> => {
     const res = await fetch(`${API}/categories/${category.id}`, {
       method: "DELETE",
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      return getErrorMessage(data as ApiError);
-    }
-
+    if (!res.ok) return getErrorMessage(data as ApiError);
     setCategories((prev) => prev.filter((c) => c.id !== category.id));
     setDel({ open: false });
     return null;
   };
 
-  // ── Statistik ──────────────────────────────────────────────
   const activeCount = categories.filter((c) => c.isActive).length;
-  const totalDresses = categories.reduce(
-    (sum, c) => sum + (c.dressCount ?? 0),
-    0,
-  );
   const sorted = [...categories].sort((a, b) => a.order - b.order);
-
-  // ── Format tanggal ─────────────────────────────────────────
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("id-ID", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* ── Header ── */}
+      {/* Header */}
       <div
         style={{
           display: "flex",
@@ -228,7 +167,6 @@ export default function CategoriesPage() {
           </h1>
         </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          {/* Tombol refresh */}
           <button
             onClick={fetchCategories}
             disabled={loading}
@@ -240,14 +178,7 @@ export default function CategoriesPage() {
               padding: "9px 12px",
               borderRadius: 3,
               cursor: loading ? "not-allowed" : "pointer",
-              transition: "all 0.2s",
             }}
-            onMouseOver={(e) =>
-              !loading && (e.currentTarget.style.color = "#9a8a70")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.color = "var(--admin-text-faint)")
-            }
           >
             <svg
               width="14"
@@ -267,16 +198,14 @@ export default function CategoriesPage() {
               />
             </svg>
           </button>
-
-          {/* Tombol tambah */}
           <button
             onClick={() => setModal({ open: true, mode: "add" })}
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              background: "rgba(212,180,120,0.1)",
-              border: "1px solid rgba(212,180,120,0.3)",
+              background: "var(--admin-accent-bg)",
+              border: "1px solid var(--admin-accent-border)",
               color: GOLD,
               fontSize: 11,
               letterSpacing: "0.15em",
@@ -284,14 +213,7 @@ export default function CategoriesPage() {
               padding: "10px 20px",
               borderRadius: 3,
               cursor: "pointer",
-              transition: "all 0.2s",
             }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.background = "rgba(212,180,120,0.18)")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.background = "rgba(212,180,120,0.1)")
-            }
           >
             <svg
               width="12"
@@ -312,7 +234,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* ── Error global ── */}
+      {/* Error */}
       {error && (
         <div
           style={{
@@ -326,23 +248,7 @@ export default function CategoriesPage() {
             gap: 12,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <svg
-              width="16"
-              height="16"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="#f87171"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
-              />
-            </svg>
-            <p style={{ fontSize: 13, color: "#f87171" }}>{error}</p>
-          </div>
+          <p style={{ fontSize: 13, color: "#f87171" }}>{error}</p>
           <button
             onClick={fetchCategories}
             style={{
@@ -362,7 +268,7 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      {/* ── Stat cards ── */}
+      {/* Stats */}
       <div
         style={{
           display: "grid",
@@ -377,7 +283,6 @@ export default function CategoriesPage() {
             label: "Nonaktif",
             value: loading ? "—" : categories.length - activeCount,
           },
-          { label: "Total Dress", value: loading ? "—" : totalDresses },
         ].map((s, i) => (
           <div
             key={i}
@@ -414,7 +319,7 @@ export default function CategoriesPage() {
         ))}
       </div>
 
-      {/* ── Tabel ── */}
+      {/* Tabel */}
       <div
         style={{
           background: CARD,
@@ -447,46 +352,33 @@ export default function CategoriesPage() {
           </p>
         </div>
 
-        {/* Loading state */}
         {loading ? (
-          <div style={{ padding: "48px", textAlign: "center" }}>
-            <div
+          <div style={{ padding: 48, textAlign: "center" }}>
+            <svg
+              width="24"
+              height="24"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="var(--admin-text-faint)"
+              strokeWidth={1.5}
               style={{
-                display: "inline-flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 12,
+                margin: "0 auto 12px",
+                display: "block",
+                animation: "spin 1s linear infinite",
               }}
             >
-              <svg
-                width="24"
-                height="24"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="var(--admin-text-faint)"
-                strokeWidth={1.5}
-                style={{ animation: "spin 1s linear infinite" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
-                />
-              </svg>
-              <p
-                style={{
-                  fontSize: 12,
-                  color: "var(--admin-text-faint)",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                Memuat data...
-              </p>
-            </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+            <p style={{ fontSize: 12, color: "var(--admin-text-faint)" }}>
+              Memuat data...
+            </p>
           </div>
-        ) : sorted.length === 0 && !error ? (
-          /* Empty state */
-          <div style={{ padding: "48px", textAlign: "center" }}>
+        ) : sorted.length === 0 ? (
+          <div style={{ padding: 48, textAlign: "center" }}>
             <p
               style={{
                 fontSize: 13,
@@ -501,8 +393,8 @@ export default function CategoriesPage() {
               style={{
                 fontSize: 11,
                 color: GOLD,
-                background: "rgba(212,180,120,0.08)",
-                border: "1px solid rgba(212,180,120,0.2)",
+                background: "var(--admin-accent-bg)",
+                border: "1px solid var(--admin-accent-border)",
                 padding: "8px 16px",
                 borderRadius: 3,
                 cursor: "pointer",
@@ -556,7 +448,7 @@ export default function CategoriesPage() {
                   <tr
                     key={cat.id}
                     style={{
-                      borderBottom: `1px solid var(--admin-border)`,
+                      borderBottom: `1px solid ${BORDER}`,
                       transition: "background 0.15s",
                     }}
                     onMouseOver={(e) =>
@@ -576,7 +468,7 @@ export default function CategoriesPage() {
                           width: 26,
                           height: 26,
                           borderRadius: 3,
-                          background: "rgba(255,255,255,0.04)",
+                          background: "rgba(0,0,0,0.04)",
                           border: `1px solid ${BORDER}`,
                           fontSize: 11,
                           color: "var(--admin-text-muted)",
@@ -588,7 +480,13 @@ export default function CategoriesPage() {
 
                     {/* Nama */}
                     <td style={{ padding: "14px 18px" }}>
-                      <p style={{ fontSize: 13, color: "var(--admin-text)" }}>
+                      <p
+                        style={{
+                          fontSize: 13,
+                          color: "var(--admin-text)",
+                          fontWeight: 500,
+                        }}
+                      >
                         {cat.name}
                       </p>
                     </td>
@@ -603,7 +501,6 @@ export default function CategoriesPage() {
                           background: "var(--admin-border)",
                           padding: "3px 8px",
                           borderRadius: 3,
-                          border: `1px solid rgba(255,255,255,0.05)`,
                           whiteSpace: "nowrap",
                         }}
                       >
@@ -623,16 +520,12 @@ export default function CategoriesPage() {
                         }}
                       >
                         {cat.description || (
-                          <span
-                            style={{ color: "#2a2420", fontStyle: "italic" }}
-                          >
-                            —
-                          </span>
+                          <span style={{ fontStyle: "italic" }}>—</span>
                         )}
                       </p>
                     </td>
 
-                    {/* Status — klik untuk toggle */}
+                    {/* Status toggle */}
                     <td style={{ padding: "14px 18px" }}>
                       <button
                         onClick={() => handleToggle(cat)}
@@ -673,7 +566,7 @@ export default function CategoriesPage() {
                       </button>
                     </td>
 
-                    {/* Tanggal dibuat */}
+                    {/* Tanggal */}
                     <td
                       style={{
                         padding: "14px 18px",
@@ -705,7 +598,6 @@ export default function CategoriesPage() {
                             textTransform: "uppercase",
                             color: "var(--admin-text-muted)",
                             padding: 0,
-                            transition: "color 0.15s",
                           }}
                           onMouseOver={(e) =>
                             (e.currentTarget.style.color = GOLD)
@@ -726,15 +618,14 @@ export default function CategoriesPage() {
                             fontSize: 11,
                             letterSpacing: "0.1em",
                             textTransform: "uppercase",
-                            color: "#4a3030",
+                            color: "var(--admin-danger)",
                             padding: 0,
-                            transition: "color 0.15s",
                           }}
                           onMouseOver={(e) =>
-                            (e.currentTarget.style.color = "#f87171")
+                            (e.currentTarget.style.opacity = "0.7")
                           }
                           onMouseOut={(e) =>
-                            (e.currentTarget.style.color = "#4a3030")
+                            (e.currentTarget.style.opacity = "1")
                           }
                         >
                           Hapus
@@ -749,666 +640,27 @@ export default function CategoriesPage() {
         )}
       </div>
 
-      {/* Animasi spin */}
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
-      {/* ── Modal Add / Edit ── */}
       {modal.open && (
         <CategoryModal
           mode={modal.mode}
           category={modal.mode === "edit" ? modal.category : undefined}
           onClose={() => setModal({ open: false })}
           onSubmit={async (form, category) => {
-            if (category) {
-              return handleUpdate(category.id, form);
-            } else {
-              return handleCreate(form);
-            }
+            if (category) return handleUpdate(category.id, form);
+            else return handleCreate(form);
           }}
         />
       )}
 
-      {/* ── Modal Hapus ── */}
       {del.open && (
-        <DeleteModal
+        <DeleteCategoryModal
           category={del.category}
           onClose={() => setDel({ open: false })}
           onConfirm={() => handleDelete(del.category)}
         />
       )}
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Modal Form Add / Edit
-// ═══════════════════════════════════════════════════════════════
-function CategoryModal({
-  mode,
-  category,
-  onClose,
-  onSubmit,
-}: {
-  mode: "add" | "edit";
-  category?: Category;
-  onClose: () => void;
-  // onSubmit mengembalikan string (pesan error) atau null (sukses)
-  onSubmit: (
-    form: CategoryFormData,
-    category?: Category,
-  ) => Promise<string | null>;
-}) {
-  const [form, setForm] = useState<CategoryFormData>({
-    name: category?.name ?? "",
-    description: category?.description ?? "",
-    order: String(category?.order ?? 0),
-    isActive: category?.isActive ?? true,
-  });
-  const [errors, setErrors] = useState<
-    Partial<CategoryFormData & { server: string }>
-  >({});
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    const fn = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", fn);
-    return () => window.removeEventListener("keydown", fn);
-  }, [onClose]);
-
-  const set = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value, type } = e.target;
-    setForm((p) => ({
-      ...p,
-      [name]:
-        type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-    }));
-    if (errors[name as keyof typeof errors]) {
-      setErrors((p) => ({ ...p, [name]: "", server: "" }));
-    }
-  };
-
-  const validate = () => {
-    const errs: Partial<CategoryFormData> = {};
-    if (!form.name.trim()) errs.name = "Nama kategori wajib diisi";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validate()) return;
-    setSubmitting(true);
-    const error = await onSubmit(form, category);
-    setSubmitting(false);
-    if (error) {
-      // Tampilkan error dari server (misal: nama duplikat)
-      setErrors({ server: error });
-    } else {
-      onClose();
-    }
-  };
-
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    background: "var(--admin-border)",
-    border: `1px solid var(--admin-border)`,
-    borderRadius: 3,
-    padding: "10px 14px",
-    fontSize: 13,
-    color: "var(--admin-text)",
-    outline: "none",
-    transition: "border-color 0.2s",
-    boxSizing: "border-box",
-    fontFamily: "inherit",
-  };
-
-  return (
-    <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-        background: "rgba(0,0,0,0.75)",
-        backdropFilter: "blur(8px)",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 480,
-          background: "var(--admin-bg)",
-          border: `1px solid ${BORDER}`,
-          borderRadius: 6,
-          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
-        }}
-      >
-        {/* Header */}
-        <div
-          style={{
-            padding: "20px 24px",
-            borderBottom: `1px solid ${BORDER}`,
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-          }}
-        >
-          <div>
-            <p
-              style={{
-                fontSize: 9,
-                letterSpacing: "0.3em",
-                textTransform: "uppercase",
-                color: "var(--admin-text-faint)",
-                marginBottom: 4,
-              }}
-            >
-              {mode === "add" ? "Tambah" : "Edit"} Kategori
-            </p>
-            <h2
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: 20,
-                fontWeight: 300,
-                color: "var(--admin-text)",
-              }}
-            >
-              {mode === "add" ? "Kategori Baru" : category?.name}
-            </h2>
-          </div>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--admin-text-faint)",
-              padding: 4,
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.color = "#7a7060")}
-            onMouseOut={(e) =>
-              (e.currentTarget.style.color = "var(--admin-text-faint)")
-            }
-          >
-            <svg
-              width="18"
-              height="18"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        {/* Body */}
-        <div
-          style={{
-            padding: "20px 24px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 16,
-          }}
-        >
-          {/* Error dari server */}
-          {errors.server && (
-            <div
-              style={{
-                background: "rgba(248,113,113,0.08)",
-                border: "1px solid rgba(248,113,113,0.2)",
-                borderRadius: 3,
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <svg
-                width="14"
-                height="14"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="#f87171"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
-                />
-              </svg>
-              <p style={{ fontSize: 12, color: "#f87171" }}>{errors.server}</p>
-            </div>
-          )}
-
-          {/* Nama */}
-          <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: 9,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: "var(--admin-text-faint)",
-                marginBottom: 8,
-              }}
-            >
-              Nama Kategori *
-            </label>
-            <input
-              name="name"
-              type="text"
-              value={form.name}
-              onChange={set}
-              placeholder="Evening Gown"
-              style={{
-                ...inputStyle,
-                borderColor: errors.name
-                  ? "rgba(248,113,113,0.5)"
-                  : "var(--admin-border)",
-              }}
-            />
-            {errors.name && (
-              <p style={{ fontSize: 10, color: "#f87171", marginTop: 4 }}>
-                {errors.name}
-              </p>
-            )}
-          </div>
-
-          {/* Deskripsi */}
-          <div>
-            <label
-              style={{
-                display: "block",
-                fontSize: 9,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: "var(--admin-text-faint)",
-                marginBottom: 8,
-              }}
-            >
-              Deskripsi{" "}
-              <span style={{ color: "var(--admin-text-faint)" }}>
-                (opsional)
-              </span>
-            </label>
-            <textarea
-              name="description"
-              value={form.description}
-              onChange={set}
-              rows={2}
-              placeholder="Deskripsi singkat kategori ini..."
-              style={{ ...inputStyle, resize: "none" }}
-            />
-          </div>
-
-          {/* Order + Status */}
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}
-          >
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: 9,
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                  color: "var(--admin-text-faint)",
-                  marginBottom: 8,
-                }}
-              >
-                Urutan Tampil
-              </label>
-              <input
-                name="order"
-                type="number"
-                min="0"
-                value={form.order}
-                onChange={set}
-                placeholder="0"
-                style={inputStyle}
-              />
-              <p
-                style={{
-                  fontSize: 9,
-                  color: "var(--admin-text-faint)",
-                  marginTop: 4,
-                }}
-              >
-                Angka kecil = tampil lebih dulu
-              </p>
-            </div>
-
-            {/* Toggle status */}
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: 9,
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                  color: "var(--admin-text-faint)",
-                  marginBottom: 8,
-                }}
-              >
-                Status
-              </label>
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "10px 14px",
-                  borderRadius: 3,
-                  cursor: "pointer",
-                  border: `1px solid ${form.isActive ? "rgba(52,211,153,0.3)" : BORDER}`,
-                  background: form.isActive
-                    ? "rgba(52,211,153,0.05)"
-                    : "rgba(255,255,255,0.02)",
-                  transition: "all 0.2s",
-                }}
-              >
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={form.isActive}
-                  onChange={set}
-                  style={{ display: "none" }}
-                />
-                {/* Toggle switch visual */}
-                <div
-                  style={{
-                    width: 32,
-                    height: 18,
-                    borderRadius: 9,
-                    position: "relative",
-                    background: form.isActive
-                      ? "rgba(52,211,153,0.3)"
-                      : "var(--admin-border)",
-                    border: `1px solid ${form.isActive ? "rgba(52,211,153,0.5)" : BORDER}`,
-                    transition: "all 0.2s",
-                    flexShrink: 0,
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 2,
-                      left: form.isActive ? 14 : 2,
-                      width: 12,
-                      height: 12,
-                      borderRadius: "50%",
-                      background: form.isActive
-                        ? "#34d399"
-                        : "var(--admin-text-faint)",
-                      transition: "all 0.2s",
-                    }}
-                  />
-                </div>
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: form.isActive
-                      ? "#34d399"
-                      : "var(--admin-text-faint)",
-                  }}
-                >
-                  {form.isActive ? "Aktif" : "Nonaktif"}
-                </span>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div
-          style={{
-            padding: "16px 24px",
-            borderTop: `1px solid ${BORDER}`,
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: 10,
-          }}
-        >
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              fontSize: 11,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: "var(--admin-text-faint)",
-              padding: "10px 16px",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.color = "#7a7060")}
-            onMouseOut={(e) =>
-              (e.currentTarget.style.color = "var(--admin-text-faint)")
-            }
-          >
-            Batal
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            style={{
-              background: submitting
-                ? "rgba(212,180,120,0.05)"
-                : "rgba(212,180,120,0.12)",
-              border: "1px solid rgba(212,180,120,0.3)",
-              color: submitting ? "#7a6840" : GOLD,
-              fontSize: 11,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              padding: "10px 24px",
-              borderRadius: 3,
-              cursor: submitting ? "not-allowed" : "pointer",
-              transition: "all 0.2s",
-              minWidth: 100,
-            }}
-            onMouseOver={(e) =>
-              !submitting &&
-              (e.currentTarget.style.background = "rgba(212,180,120,0.2)")
-            }
-            onMouseOut={(e) =>
-              !submitting &&
-              (e.currentTarget.style.background = "rgba(212,180,120,0.12)")
-            }
-          >
-            {submitting ? "Menyimpan..." : mode === "add" ? "Tambah" : "Simpan"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ═══════════════════════════════════════════════════════════════
-// Modal Konfirmasi Hapus
-// ═══════════════════════════════════════════════════════════════
-function DeleteModal({
-  category,
-  onClose,
-  onConfirm,
-}: {
-  category: Category;
-  onClose: () => void;
-  onConfirm: () => Promise<string | null>;
-}) {
-  const [deleting, setDeleting] = useState(false);
-  const [error, setError] = useState("");
-
-  const handle = async () => {
-    setDeleting(true);
-    const err = await onConfirm();
-    if (err) {
-      setError(err);
-      setDeleting(false);
-    }
-    // Kalau sukses, modal ditutup di handleDelete
-  };
-
-  return (
-    <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-        background: "rgba(0,0,0,0.75)",
-        backdropFilter: "blur(8px)",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 380,
-          background: "var(--admin-bg)",
-          border: `1px solid ${BORDER}`,
-          borderRadius: 6,
-          padding: 28,
-          boxShadow: "0 24px 80px rgba(0,0,0,0.6)",
-        }}
-      >
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            marginBottom: 16,
-            background: "rgba(248,113,113,0.08)",
-            border: "1px solid rgba(248,113,113,0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg
-            width="18"
-            height="18"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="#f87171"
-            strokeWidth={1.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-            />
-          </svg>
-        </div>
-
-        <h3
-          style={{
-            fontFamily: "'Cormorant Garamond', serif",
-            fontSize: 20,
-            fontWeight: 300,
-            color: "var(--admin-text)",
-            marginBottom: 8,
-          }}
-        >
-          Hapus Kategori?
-        </h3>
-        <p
-          style={{
-            fontSize: 13,
-            color: "var(--admin-text-muted)",
-            lineHeight: 1.6,
-            marginBottom: error ? 12 : 24,
-          }}
-        >
-          <span style={{ color: "var(--admin-text)" }}>{category.name}</span>{" "}
-          akan dihapus permanen dari database dan tidak bisa dikembalikan.
-        </p>
-
-        {error && (
-          <div
-            style={{
-              background: "rgba(248,113,113,0.08)",
-              border: "1px solid rgba(248,113,113,0.2)",
-              borderRadius: 3,
-              padding: "10px 14px",
-              marginBottom: 16,
-            }}
-          >
-            <p style={{ fontSize: 12, color: "#f87171" }}>{error}</p>
-          </div>
-        )}
-
-        <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: `1px solid ${BORDER}`,
-              color: "var(--admin-text-faint)",
-              fontSize: 11,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              padding: "9px 16px",
-              borderRadius: 3,
-              cursor: "pointer",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.color = "#7a7060")}
-            onMouseOut={(e) =>
-              (e.currentTarget.style.color = "var(--admin-text-faint)")
-            }
-          >
-            Batal
-          </button>
-          <button
-            onClick={handle}
-            disabled={deleting}
-            style={{
-              background: deleting
-                ? "rgba(248,113,113,0.05)"
-                : "rgba(248,113,113,0.1)",
-              border: "1px solid rgba(248,113,113,0.3)",
-              color: deleting ? "#8a4040" : "#f87171",
-              fontSize: 11,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              padding: "9px 20px",
-              borderRadius: 3,
-              cursor: deleting ? "not-allowed" : "pointer",
-              transition: "all 0.2s",
-            }}
-            onMouseOver={(e) =>
-              !deleting &&
-              (e.currentTarget.style.background = "rgba(248,113,113,0.18)")
-            }
-            onMouseOut={(e) =>
-              !deleting &&
-              (e.currentTarget.style.background = "rgba(248,113,113,0.1)")
-            }
-          >
-            {deleting ? "Menghapus..." : "Ya, Hapus"}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
