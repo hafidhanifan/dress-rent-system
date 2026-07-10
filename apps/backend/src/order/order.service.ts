@@ -17,6 +17,32 @@ export class OrderService {
     private dressService: DressService,
   ) {}
 
+  /**
+   * Cek apakah size tertentu masih tersedia di rentang tanggal yang diminta
+   * Logic overlap tanggal: dua rentang tanggal bentrok kalau
+   * startA < endB DAN endA > startB
+   */
+  private async checkAvailability(
+    dressId: number,
+    sizeId: number | null,
+    startDate: string,
+    endDate: string,
+    totalStock: number,
+  ): Promise<boolean> {
+    const overlappingOrders = await this.orderRepo
+      .createQueryBuilder('order')
+      .where('order.dressId = :dressId', { dressId })
+      .andWhere(sizeId ? 'order.sizeId = :sizeId' : 'order.sizeId IS NULL', {
+        sizeId,
+      })
+      .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
+      .andWhere('order.startDate < :endDate', { endDate })
+      .andWhere('order.endDate > :startDate', { startDate })
+      .getCount();
+
+    return overlappingOrders < totalStock;
+  }
+
   /** Buat pesanan baru */
   async create(userId: number, dto: CreateOrderDto): Promise<Order> {
     // Cek dress ada dan available
