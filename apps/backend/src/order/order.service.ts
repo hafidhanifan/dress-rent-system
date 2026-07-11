@@ -68,6 +68,31 @@ export class OrderService {
       throw new BadRequestException(`Minimal sewa ${dress.minRentalDays} hari`);
     }
 
+    // Cari data stock untuk size yang dipilih
+    let stockForSize = 1; // default kalau dress tidak punya size sama sekali
+    if (dto.sizeId) {
+      const selectedSize = dress.sizes?.find((s) => s.id === dto.sizeId);
+      if (!selectedSize) {
+        throw new BadRequestException('Ukuran tidak ditemukan');
+      }
+      stockForSize = selectedSize.stock;
+    }
+
+    // Cek ketersediaan berdasarkan tanggal + stock
+    const isAvailable = await this.checkAvailability(
+      dto.dressId,
+      dto.sizeId ?? null,
+      dto.startDate,
+      dto.endDate,
+      stockForSize,
+    );
+
+    if (!isAvailable) {
+      throw new BadRequestException(
+        'Maaf, dress dengan ukuran ini sudah tidak tersedia di rentang tanggal yang dipilih',
+      );
+    }
+
     const totalPrice = Number(dress.pricePerDay) * totalDays;
 
     const order = this.orderRepo.create({
