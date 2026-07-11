@@ -134,4 +134,44 @@ export class OrderService {
     order.status = 'cancelled';
     return this.orderRepo.save(order);
   }
+
+  /**
+   * Update status pesanan — khusus admin
+   * Tidak ada pengecekan userId karena admin bisa update pesanan siapa saja
+   */
+  async updateStatus(id: number, status: Order['status']): Promise<Order> {
+    const order = await this.orderRepo.findOne({ where: { id } });
+    if (!order) throw new NotFoundException('Pesanan tidak ditemukan');
+
+    order.status = status;
+
+    // Kalau admin set status jadi "returned", otomatis catat waktu sekarang
+    if (status === 'returned' && !order.returnedAt) {
+      order.returnedAt = new Date();
+    }
+
+    return this.orderRepo.save(order);
+  }
+
+  /**
+   * Ambil semua pesanan — khusus admin (tidak difilter userId)
+   */
+  async findAll(): Promise<Order[]> {
+    return this.orderRepo.find({
+      order: { createdAt: 'DESC' },
+      relations: ['user'],
+    });
+  }
+
+  /**
+   * Ambil satu pesanan berdasarkan ID saja — khusus admin
+   */
+  async findOneById(id: number): Promise<Order> {
+    const order = await this.orderRepo.findOne({
+      where: { id },
+      relations: ['user'],
+    });
+    if (!order) throw new NotFoundException('Pesanan tidak ditemukan');
+    return order;
+  }
 }
