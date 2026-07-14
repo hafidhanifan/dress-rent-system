@@ -15,6 +15,7 @@ import { UpdateStatusDto } from './dto/update-status.dto';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -29,24 +30,27 @@ export class OrderController {
 
   /**
    * GET /orders/admin/all — semua pesanan dari semua user, khusus admin
+   * @UseGuards(AdminGuard) berjalan SETELAH JwtAuthGuard di atas
    * PENTING: harus di atas @Get(':id') supaya tidak konflik routing
    */
   @Get('admin/all')
+  @UseGuards(AdminGuard)
   findAllAdmin() {
     return this.orderService.findAll();
   }
 
   /**
    * GET /orders/admin/:id — detail pesanan tanpa cek kepemilikan, khusus admin
-   * PENTING: harus di atas @Get(':id')
    */
   @Get('admin/:id')
+  @UseGuards(AdminGuard)
   findOneAdmin(@Param('id', ParseIntPipe) id: number) {
     return this.orderService.findOneById(id);
   }
 
   /** PATCH /orders/admin/:id/status — update status pesanan, khusus admin */
   @Patch('admin/:id/status')
+  @UseGuards(AdminGuard)
   @HttpCode(HttpStatus.OK)
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
