@@ -25,7 +25,7 @@ export default function AdminLayout({
       return;
     }
 
-    if (user?.role !== amdin) {
+    if (user?.role !== "admin") {
       // sudah login tapi role bukan admin? redirect ke halaman home
       router.push("/");
       return;
