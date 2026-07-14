@@ -23,7 +23,13 @@ export default function LoginPage() {
   useEffect(() => {
     if (!success) return;
     const timer = setTimeout(() => {
-      router.push(redirectTo);
+      // cek role dari localStorage, redirect sesuai dengan role
+      const user = JSON.parse(localStorage.getItem("user") ?? "null");
+      if (user?.role === "admin") {
+        router.push("admin/dashboard");
+      } else {
+        router.push(redirectTo);
+      }
     }, 2000);
     return () => clearTimeout(timer);
   }, [success, router, redirectTo]);
