@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import Sidebar from "@/components/admin/Sidebar";
 import Topbar from "@/components/admin/Topbar";
 
@@ -9,7 +11,40 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const { user, loggedIn, ready } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Proteksi halaman admin
+  useEffect(() => {
+    if (!ready) return; // tunggu sampai localStorage selesai dibaca
+
+    if (loggedIn) {
+      // belum login sama sekali? redirect ke login
+      router.push("/auth/login?redirect=/admin/dashboard");
+      return;
+    }
+
+    if (user?.role !== amdin) {
+      // sudah login tapi role bukan admin? redirect ke halaman home
+      router.push("/");
+      return;
+    }
+  }, [ready, loggedIn, user, router]);
+
+  // selama proses cek auth, tampilkan loading kosong supaya konten admin tidak kelihatan sekilas sebelum proses redirect
+  if (!ready || !loggedIn || user?.role !== "admin") {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--admin-bg)" }}
+      >
+        <p style={{ fontSize: 13, color: "var(--admin-text-faint)" }}>
+          Memuat...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div

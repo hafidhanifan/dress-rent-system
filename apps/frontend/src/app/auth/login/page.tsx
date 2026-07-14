@@ -26,7 +26,7 @@ export default function LoginPage() {
       // cek role dari localStorage, redirect sesuai dengan role
       const user = JSON.parse(localStorage.getItem("user") ?? "null");
       if (user?.role === "admin") {
-        router.push("admin/dashboard");
+        router.push("/admin/dashboard");
       } else {
         router.push(redirectTo);
       }
