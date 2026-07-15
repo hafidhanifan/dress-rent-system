@@ -19,7 +19,7 @@ export default function AdminLayout({
   useEffect(() => {
     if (!ready) return; // tunggu sampai localStorage selesai dibaca
 
-    if (loggedIn) {
+    if (!loggedIn) {
       // belum login sama sekali? redirect ke login
       router.push("/auth/login?redirect=/admin/dashboard");
       return;
