@@ -61,7 +61,7 @@ export default function Navbar() {
             href="/"
             className="font-serif text-xl md:text-2xl font-[300] tracking-[0.25em] uppercase text-stone-800"
           >
-            Élégance
+            Naia Dress
           </Link>
         </div>
 
