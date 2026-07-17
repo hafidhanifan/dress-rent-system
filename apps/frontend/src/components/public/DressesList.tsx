@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 
@@ -38,8 +38,13 @@ export default function DressesList({
   initialDresses: Dress[];
   initialCategories: Category[];
 }) {
+  const searchParams = useSearchParams();
+
   const [search, setSearch] = useState("");
-  const [activeCat, setActiveCat] = useState("all");
+  // Baca kategori aktif dari query ?cat=slug -> kalau tidak ada, default "all"
+  const [activeCat, setActiveCat] = useState<string>(
+    searchParams.get("cat") ?? "all",
+  );
   const [sort, setSort] = useState<"default" | "price-asc" | "price-desc">(
     "default",
   );
@@ -47,8 +52,8 @@ export default function DressesList({
   const filtered = initialDresses
     .filter((d) => {
       const matchSearch = d.name.toLowerCase().includes(search.toLowerCase());
-      const matchCat =
-        activeCat === "all" || String(d.categoryId) === activeCat;
+      // Cocokkan pakai SLUG kategori (bukan id) supaya sinkron dengan URL
+      const matchCat = activeCat === "all" || d.category?.slug === activeCat;
       return matchSearch && matchCat;
     })
     .sort((a, b) => {
@@ -98,17 +103,17 @@ export default function DressesList({
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             {[
-              { id: "all", name: "Semua" },
+              { slug: "all", name: "Semua" },
               ...initialCategories.map((c) => ({
-                id: String(c.id),
+                slug: c.slug,
                 name: c.name,
               })),
             ].map((cat) => (
               <button
-                key={cat.id}
-                onClick={() => setActiveCat(cat.id)}
+                key={cat.slug}
+                onClick={() => setActiveCat(cat.slug)}
                 className={`font-sans text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full border transition-all duration-200 ${
-                  activeCat === cat.id
+                  activeCat === cat.slug
                     ? "bg-stone-800 text-stone-100 border-stone-800"
                     : "bg-transparent text-stone-500 border-stone-300 hover:border-stone-500 hover:text-stone-700"
                 }`}

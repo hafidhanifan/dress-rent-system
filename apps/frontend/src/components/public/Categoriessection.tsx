@@ -3,15 +3,13 @@
 import Image from "next/image";
 import { useEffect, useRef } from "react";
 
-const categories = [
-  { name: "Evening Gown", href: "/dresses?cat=evening-gown" },
-  { name: "Cocktail", href: "/dresses?cat=cocktail" },
-  { name: "Midi Dress", href: "/dresses?cat=midi" },
-  { name: "Wrap Dress", href: "/dresses?cat=wrap" },
-  { name: "Maxi Dress", href: "/dresses?cat=maxi" },
-];
+type Category = { id: number; name: string; slug: string; isActive: boolean };
 
-export default function CategoriesSection() {
+export default function CategoriesSection({
+  categories,
+}: {
+  categories: Category[];
+}) {
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -22,18 +20,13 @@ export default function CategoriesSection() {
       section.querySelectorAll<HTMLElement>("[data-reveal]"),
     );
 
-    // ── Langkah 1: set opacity 0 dulu sebelum browser paint ──
-    // Pakai dua requestAnimationFrame supaya browser sempat render
-    // elemen dulu, baru kita sembunyikan — mencegah "flash of visible"
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         items.forEach((el) => {
           el.style.opacity = "0";
           el.style.transform = "translateY(28px)";
-          // Belum ada transition — supaya perubahan di atas instant
         });
 
-        // ── Langkah 2: baru pasang observer ──
         const observer = new IntersectionObserver(
           ([entry]) => {
             if (!entry.isIntersecting) return;
@@ -41,7 +34,6 @@ export default function CategoriesSection() {
             items.forEach((el) => {
               const delay = parseFloat(el.dataset.delay ?? "0") * 1000;
               setTimeout(() => {
-                // Aktifkan transition LALU ubah nilai
                 el.style.transition = "opacity 0.8s ease, transform 0.8s ease";
                 el.style.opacity = "1";
                 el.style.transform = "translateY(0)";
@@ -50,8 +42,6 @@ export default function CategoriesSection() {
 
             observer.disconnect();
           },
-          // rootMargin negatif = animasi baru jalan saat elemen
-          // sudah 80px masuk dari bawah viewport
           { threshold: 0, rootMargin: "0px 0px -80px 0px" },
         );
 
@@ -60,7 +50,7 @@ export default function CategoriesSection() {
     });
 
     return () => {};
-  }, []);
+  }, [categories]);
 
   return (
     <section
@@ -84,12 +74,13 @@ export default function CategoriesSection() {
             <ul className="flex flex-col items-center">
               {categories.map((cat, i) => (
                 <li
-                  key={cat.name}
+                  key={cat.id}
                   data-reveal
                   data-delay={String(0.15 + i * 0.1)}
                 >
+                  {/* link ke /dresses dengan query ?cat=slug -> auto-filter */}
                   <a
-                    href={cat.href}
+                    href={`/dresses?cat=${cat.slug}`}
                     className="block font-serif font-light leading-[1.15] text-[clamp(2rem,9vw,3rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500"
                   >
                     {cat.name}
@@ -124,9 +115,12 @@ export default function CategoriesSection() {
               style={{ aspectRatio: "3/4" }}
             >
               <div className="w-full h-full bg-[#c8bdb0] flex items-center justify-center">
-                <span className="font-sans text-[8px] tracking-widest uppercase text-stone-400 rotate-90 whitespace-nowrap">
-                  Foto kiri
-                </span>
+                <Image
+                  src="/images/categories-section-1.webp"
+                  alt="Dress collection"
+                  fill
+                  className="object-cover object-top"
+                />
               </div>
             </div>
           </div>
@@ -136,9 +130,12 @@ export default function CategoriesSection() {
               style={{ aspectRatio: "3/4" }}
             >
               <div className="w-full h-full bg-[#d4bfb0] flex items-center justify-center">
-                <span className="font-sans text-[8px] tracking-widest uppercase text-stone-400 rotate-90 whitespace-nowrap">
-                  Foto kanan
-                </span>
+                <Image
+                  src="/images/categories-section-2.webp"
+                  alt="Dress collection"
+                  fill
+                  className="object-cover object-top"
+                />
               </div>
             </div>
           </div>
@@ -149,7 +146,6 @@ export default function CategoriesSection() {
           DESKTOP (≥md)
       ══════════════════════════ */}
       <div className="hidden md:flex items-stretch justify-center min-h-150 lg:min-h-170">
-        {/* Foto kiri — align bawah */}
         <div
           data-reveal
           data-delay="0.1"
@@ -170,7 +166,6 @@ export default function CategoriesSection() {
           </div>
         </div>
 
-        {/* Teks tengah */}
         <div className="flex-1 flex flex-col items-center justify-center text-center px-4 py-16">
           <p
             data-reveal
@@ -184,12 +179,12 @@ export default function CategoriesSection() {
             <ul className="flex flex-col items-center">
               {categories.map((cat, i) => (
                 <li
-                  key={cat.name}
+                  key={cat.id}
                   data-reveal
                   data-delay={String(0.15 + i * 0.1)}
                 >
                   <a
-                    href={cat.href}
+                    href={`/dresses?cat=${cat.slug}`}
                     className="block font-serif font-light leading-[1.1] text-[clamp(2.4rem,3.8vw,3.8rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500 tracking-[-0.01em] whitespace-nowrap"
                   >
                     {cat.name}
@@ -217,7 +212,6 @@ export default function CategoriesSection() {
           </div>
         </div>
 
-        {/* Foto kanan — align atas */}
         <div
           data-reveal
           data-delay="0.2"
