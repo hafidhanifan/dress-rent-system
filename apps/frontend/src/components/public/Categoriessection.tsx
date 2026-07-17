@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 type Category = { id: number; name: string; slug: string; isActive: boolean };
@@ -55,7 +56,8 @@ export default function CategoriesSection({
   return (
     <section
       ref={sectionRef}
-      className="w-full h-screen flex flex-col justify-center bg-[#f0ebe3] overflow-hidden"
+      className="w-full h-screen flex flex-col justify-center overflow-hidden"
+      style={{ background: "var(--user-bg)" }}
     >
       {/* ══════════════════════════
           MOBILE  (<md)
@@ -65,7 +67,8 @@ export default function CategoriesSection({
           <p
             data-reveal
             data-delay="0.05"
-            className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-400 mb-6"
+            className="font-sans text-[9px] tracking-[0.35em] uppercase mb-6"
+            style={{ color: "var(--user-text-muted)" }}
           >
             Browse Collection
           </p>
@@ -81,7 +84,14 @@ export default function CategoriesSection({
                   {/* link ke /dresses dengan query ?cat=slug -> auto-filter */}
                   <a
                     href={`/dresses?cat=${cat.slug}`}
-                    className="block font-serif font-light leading-[1.15] text-[clamp(2rem,9vw,3rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500"
+                    className="block font-serif font-light leading-[1.15] text-[clamp(2rem,9vw,3rem)] transition-colors duration-500"
+                    style={{ color: "var(--user-text)" }}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.color = "var(--user-text-muted)")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.color = "var(--user-text)")
+                    }
                   >
                     {cat.name}
                   </a>
@@ -95,48 +105,46 @@ export default function CategoriesSection({
             data-delay="0.75"
             className="mt-8 flex flex-col items-center gap-2"
           >
-            <a
+            <Link
               href="/dresses"
-              className="group flex items-center gap-2 font-sans text-[9px] tracking-[0.3em] uppercase text-stone-500 hover:text-stone-800 transition-colors duration-300"
+              className="group flex items-center gap-2 font-sans text-[9px] tracking-[0.3em] uppercase transition-colors duration-300"
+              style={{ color: "var(--user-text-secondary)" }}
             >
-              <span className="text-stone-400 group-hover:text-stone-600">
-                &rsaquo;
-              </span>
+              <span style={{ color: "var(--user-text-muted)" }}>&rsaquo;</span>
               View Everything
-            </a>
-            <div className="w-8 h-px bg-stone-400" />
+            </Link>
+            <div
+              className="w-8 h-px"
+              style={{ background: "var(--user-text-muted)" }}
+            />
           </div>
         </div>
 
         <div className="flex gap-3 w-full">
           <div data-reveal data-delay="0.1" className="flex-1 mt-8">
             <div
-              className="overflow-hidden w-full"
+              className="relative overflow-hidden w-full"
               style={{ aspectRatio: "3/4" }}
             >
-              <div className="w-full h-full bg-[#c8bdb0] flex items-center justify-center">
-                <Image
-                  src="/images/categories-section-1.webp"
-                  alt="Dress collection"
-                  fill
-                  className="object-cover object-top"
-                />
-              </div>
+              <Image
+                src="/images/categories-section-1.webp"
+                alt="Dress collection"
+                fill
+                className="object-cover object-top"
+              />
             </div>
           </div>
           <div data-reveal data-delay="0.2" className="flex-1 -mt-4">
             <div
-              className="overflow-hidden w-full"
+              className="relative overflow-hidden w-full"
               style={{ aspectRatio: "3/4" }}
             >
-              <div className="w-full h-full bg-[#d4bfb0] flex items-center justify-center">
-                <Image
-                  src="/images/categories-section-2.webp"
-                  alt="Dress collection"
-                  fill
-                  className="object-cover object-top"
-                />
-              </div>
+              <Image
+                src="/images/categories-section-2.webp"
+                alt="Dress collection"
+                fill
+                className="object-cover object-top"
+              />
             </div>
           </div>
         </div>
@@ -155,14 +163,12 @@ export default function CategoriesSection({
             className="relative overflow-hidden w-full"
             style={{ aspectRatio: "3/4" }}
           >
-            <div className="w-full h-full bg-[#c8bdb0] flex items-center justify-center">
-              <Image
-                src="/images/categories-section-1.webp"
-                alt="Dress collection"
-                fill
-                className="object-cover object-top"
-              />
-            </div>
+            <Image
+              src="/images/categories-section-1.webp"
+              alt="Dress collection"
+              fill
+              className="object-cover object-top"
+            />
           </div>
         </div>
 
@@ -170,7 +176,8 @@ export default function CategoriesSection({
           <p
             data-reveal
             data-delay="0.05"
-            className="font-sans text-[10px] tracking-[0.35em] uppercase text-stone-400 mb-8"
+            className="font-sans text-[10px] tracking-[0.35em] uppercase mb-8"
+            style={{ color: "var(--user-text-muted)" }}
           >
             Browse Collection
           </p>
@@ -185,7 +192,14 @@ export default function CategoriesSection({
                 >
                   <a
                     href={`/dresses?cat=${cat.slug}`}
-                    className="block font-serif font-light leading-[1.1] text-[clamp(2.4rem,3.8vw,3.8rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500 tracking-[-0.01em] whitespace-nowrap"
+                    className="block font-serif font-light leading-[1.1] text-[clamp(2.4rem,3.8vw,3.8rem)] transition-colors duration-500 tracking-[-0.01em] whitespace-nowrap"
+                    style={{ color: "var(--user-text)" }}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.color = "var(--user-text-muted)")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.color = "var(--user-text)")
+                    }
                   >
                     {cat.name}
                   </a>
@@ -199,16 +213,18 @@ export default function CategoriesSection({
             data-delay="0.75"
             className="mt-10 flex flex-col items-center gap-2"
           >
-            <a
+            <Link
               href="/dresses"
-              className="group flex items-center gap-2 font-sans text-[10px] tracking-[0.3em] uppercase text-stone-500 hover:text-stone-800 transition-colors duration-300"
+              className="group flex items-center gap-2 font-sans text-[10px] tracking-[0.3em] uppercase transition-colors duration-300"
+              style={{ color: "var(--user-text-secondary)" }}
             >
-              <span className="text-stone-400 group-hover:text-stone-600">
-                &rsaquo;
-              </span>
+              <span style={{ color: "var(--user-text-muted)" }}>&rsaquo;</span>
               View Everything
-            </a>
-            <div className="w-8 h-px bg-stone-400" />
+            </Link>
+            <div
+              className="w-8 h-px"
+              style={{ background: "var(--user-text-muted)" }}
+            />
           </div>
         </div>
 
@@ -221,14 +237,12 @@ export default function CategoriesSection({
             className="relative overflow-hidden w-full"
             style={{ aspectRatio: "3/4" }}
           >
-            <div className="w-full h-full bg-[#d4bfb0] flex items-center justify-center">
-              <Image
-                src="/images/categories-section-2.webp"
-                alt="Dress collection"
-                fill
-                className="object-cover object-top"
-              />
-            </div>
+            <Image
+              src="/images/categories-section-2.webp"
+              alt="Dress collection"
+              fill
+              className="object-cover object-top"
+            />
           </div>
         </div>
       </div>

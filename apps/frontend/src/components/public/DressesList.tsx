@@ -79,23 +79,23 @@ export default function DressesList({
         </div>
 
         <h1
-          className="font-serif font-[300] text-stone-800 leading-none mb-5"
+          className="font-serif font-light text-stone-800 leading-none mb-5"
           style={{ fontSize: "clamp(2.8rem, 7vw, 6rem)" }}
         >
           All <em className="italic">Dresses</em>
         </h1>
 
-        <p className="font-sans font-[300] text-stone-400 text-sm leading-relaxed max-w-md mx-auto">
+        <p className="font-sans font-light text-stone-400 text-sm leading-relaxed max-w-md mx-auto">
           Setiap gaun adalah sebuah cerita — temukan yang paling sempurna untuk
           momenmu.
         </p>
 
         <div className="flex items-center justify-center gap-4 mt-8">
-          <div className="w-12 h-[1px] bg-stone-300" />
+          <div className="w-12 h-px bg-stone-300" />
           <span className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-300">
             {filtered.length} dress
           </span>
-          <div className="w-12 h-[1px] bg-stone-300" />
+          <div className="w-12 h-px bg-stone-300" />
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default function DressesList({
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <div className="relative">
               <svg
                 width="12"
@@ -163,7 +163,7 @@ export default function DressesList({
       <main className="max-w-7xl mx-auto px-6 md:px-10 py-12 md:py-16">
         {filtered.length === 0 ? (
           <div className="text-center py-24">
-            <p className="font-serif font-[300] text-stone-400 text-2xl mb-3">
+            <p className="font-serif font-light text-stone-400 text-2xl mb-3">
               Dress tidak ditemukan
             </p>
             <p className="font-sans text-sm text-stone-400">
@@ -289,13 +289,13 @@ function DressCard({
           {dress.category?.name ?? "—"}
         </p>
         <h2
-          className="font-serif font-[300] text-stone-800 leading-snug mb-2 group-hover:text-stone-500 transition-colors duration-300"
+          className="font-serif font-light text-stone-800 leading-snug mb-2 group-hover:text-stone-500 transition-colors duration-300"
           style={{ fontSize: "clamp(1.1rem, 2vw, 1.4rem)" }}
         >
           {dress.name}
         </h2>
         {dress.description && (
-          <p className="font-sans font-[300] text-stone-400 text-xs leading-relaxed line-clamp-2">
+          <p className="font-sans font-light text-stone-400 text-xs leading-relaxed line-clamp-2">
             {dress.description}
           </p>
         )}
