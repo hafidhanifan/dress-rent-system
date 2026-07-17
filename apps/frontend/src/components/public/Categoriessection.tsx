@@ -90,7 +90,7 @@ export default function CategoriesSection() {
                 >
                   <a
                     href={cat.href}
-                    className="block font-serif font-[300] leading-[1.15] text-[clamp(2rem,9vw,3rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500"
+                    className="block font-serif font-light leading-[1.15] text-[clamp(2rem,9vw,3rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500"
                   >
                     {cat.name}
                   </a>
@@ -113,7 +113,7 @@ export default function CategoriesSection() {
               </span>
               View Everything
             </a>
-            <div className="w-8 h-[1px] bg-stone-400" />
+            <div className="w-8 h-px bg-stone-400" />
           </div>
         </div>
 
@@ -148,7 +148,7 @@ export default function CategoriesSection() {
       {/* ══════════════════════════
           DESKTOP (≥md)
       ══════════════════════════ */}
-      <div className="hidden md:flex items-stretch justify-center min-h-[600px] lg:min-h-[680px]">
+      <div className="hidden md:flex items-stretch justify-center min-h-150 lg:min-h-170">
         {/* Foto kiri — align bawah */}
         <div
           data-reveal
@@ -190,7 +190,7 @@ export default function CategoriesSection() {
                 >
                   <a
                     href={cat.href}
-                    className="block font-serif font-[300] leading-[1.1] text-[clamp(2.4rem,3.8vw,3.8rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500 tracking-[-0.01em] whitespace-nowrap"
+                    className="block font-serif font-light leading-[1.1] text-[clamp(2.4rem,3.8vw,3.8rem)] text-stone-800 hover:text-stone-400 transition-colors duration-500 tracking-[-0.01em] whitespace-nowrap"
                   >
                     {cat.name}
                   </a>
@@ -213,7 +213,7 @@ export default function CategoriesSection() {
               </span>
               View Everything
             </a>
-            <div className="w-8 h-[1px] bg-stone-400" />
+            <div className="w-8 h-px bg-stone-400" />
           </div>
         </div>
 
