@@ -13,7 +13,6 @@ export default function Navbar() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Tutup dropdown kalau klik di luar
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -41,13 +40,19 @@ export default function Navbar() {
         <ul className="hidden md:flex items-center gap-8">
           {[
             { label: "Collection", href: "/dresses" },
-            { label: "New Arrivals", href: "/dresses" },
             { label: "About", href: "/about" },
           ].map((item) => (
             <li key={item.label}>
               <Link
                 href={item.href}
-                className="font-sans text-[11px] font-[400] tracking-[0.18em] uppercase text-stone-700 hover:text-stone-900 transition-colors duration-200"
+                className="font-sans text-[11px] font-normal tracking-[0.18em] uppercase transition-colors duration-200"
+                style={{ color: "var(--user-text)" }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.color = "var(--user-text)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.color = "var(--user-text)")
+                }
               >
                 {item.label}
               </Link>
@@ -59,7 +64,8 @@ export default function Navbar() {
         <div className="absolute left-1/2 -translate-x-1/2">
           <Link
             href="/"
-            className="font-serif text-xl md:text-2xl font-[300] tracking-[0.25em] uppercase text-stone-800"
+            className="font-serif text-xl md:text-2xl font-lilght tracking-[0.25em] uppercase"
+            style={{ color: "var(--user-text)" }}
           >
             Naia Dress
           </Link>
@@ -69,7 +75,8 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6 ml-auto">
           {/* Search */}
           <button
-            className="text-stone-600 hover:text-stone-900 transition-colors"
+            className="transition-colors"
+            style={{ color: "var(--user-text-secondary)" }}
             aria-label="Search"
           >
             <svg
@@ -91,7 +98,8 @@ export default function Navbar() {
           {/* Wishlist */}
           <Link
             href="/wishlist"
-            className="text-stone-600 hover:text-stone-900 transition-colors"
+            className="transition-colors"
+            style={{ color: "var(--user-text-secondary)" }}
             aria-label="Wishlist"
           >
             <svg
@@ -114,18 +122,23 @@ export default function Navbar() {
           <div ref={dropdownRef} className="relative">
             <button
               onClick={() => setDropdownOpen((p) => !p)}
-              className="text-stone-600 hover:text-stone-900 transition-colors"
+              className="transition-colors"
+              style={{ color: "var(--user-text-secondary)" }}
               aria-label="User menu"
             >
-              {/* Sudah login: tampilkan inisial nama */}
               {ready && loggedIn && user ? (
-                <div className="w-6 h-6 rounded-full bg-stone-800 flex items-center justify-center">
-                  <span className="font-sans text-[9px] text-stone-100 leading-none">
+                <div
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ background: "var(--user-text)" }}
+                >
+                  <span
+                    className="font-sans text-[9px] leading-none"
+                    style={{ color: "var(--user-bg)" }}
+                  >
                     {user.fullName?.charAt(0).toUpperCase() ?? "U"}
                   </span>
                 </div>
               ) : (
-                // Belum login: tampilkan icon user biasa
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="w-4 h-4"
@@ -146,17 +159,30 @@ export default function Navbar() {
             {/* Dropdown */}
             {dropdownOpen && (
               <div
-                className="absolute right-0 top-full mt-3 w-44 bg-[#f5f0ea] border border-stone-200/80 shadow-xl overflow-hidden"
-                style={{ animation: "fadeDown 0.15s ease forwards" }}
+                className="absolute right-0 top-full mt-3 w-44 shadow-xl overflow-hidden"
+                style={{
+                  background: "var(--user-bg-alt)",
+                  border: "1px solid var(--user-border)",
+                  animation: "fadeDown 0.15s ease forwards",
+                }}
               >
                 {ready && loggedIn && user ? (
                   <>
                     {/* Info user */}
-                    <div className="px-4 py-3 border-b border-stone-200/60">
-                      <p className="font-sans text-[8px] tracking-[0.2em] uppercase text-stone-400">
+                    <div
+                      className="px-4 py-3"
+                      style={{ borderBottom: "1px solid var(--user-border)" }}
+                    >
+                      <p
+                        className="font-sans text-[8px] tracking-[0.2em] uppercase"
+                        style={{ color: "var(--user-text-muted)" }}
+                      >
                         Masuk sebagai
                       </p>
-                      <p className="font-sans text-xs text-stone-700 mt-0.5 truncate">
+                      <p
+                        className="font-sans text-xs mt-0.5 truncate"
+                        style={{ color: "var(--user-text)" }}
+                      >
                         {user.fullName}
                       </p>
                     </div>
@@ -171,7 +197,8 @@ export default function Navbar() {
                         key={item.href}
                         href={item.href}
                         onClick={() => setDropdownOpen(false)}
-                        className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase text-stone-500 hover:bg-stone-200/50 hover:text-stone-800 transition-colors"
+                        className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase transition-colors"
+                        style={{ color: "var(--user-text-secondary)" }}
                       >
                         {item.label}
                       </Link>
@@ -182,7 +209,11 @@ export default function Navbar() {
                       <Link
                         href="/admin/dashboard"
                         onClick={() => setDropdownOpen(false)}
-                        className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase text-stone-500 hover:bg-stone-200/50 hover:text-stone-800 transition-colors border-t border-stone-200/60"
+                        className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase transition-colors"
+                        style={{
+                          color: "var(--user-text-secondary)",
+                          borderTop: "1px solid var(--user-border)",
+                        }}
                       >
                         Dashboard Admin
                       </Link>
@@ -191,7 +222,8 @@ export default function Navbar() {
                     {/* Logout */}
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors border-t border-stone-200/60"
+                      className="w-full text-left px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase text-red-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                      style={{ borderTop: "1px solid var(--user-border)" }}
                     >
                       Keluar
                     </button>
@@ -202,14 +234,19 @@ export default function Navbar() {
                     <Link
                       href="/auth/login"
                       onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase text-stone-500 hover:bg-stone-200/50 hover:text-stone-800 transition-colors"
+                      className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase transition-colors"
+                      style={{ color: "var(--user-text-secondary)" }}
                     >
                       Masuk
                     </Link>
                     <Link
                       href="/auth/register"
                       onClick={() => setDropdownOpen(false)}
-                      className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase text-stone-500 hover:bg-stone-200/50 hover:text-stone-800 transition-colors border-t border-stone-200/60"
+                      className="block px-4 py-2.5 font-sans text-[9px] tracking-[0.15em] uppercase transition-colors"
+                      style={{
+                        color: "var(--user-text-secondary)",
+                        borderTop: "1px solid var(--user-border)",
+                      }}
                     >
                       Daftar
                     </Link>
@@ -222,7 +259,19 @@ export default function Navbar() {
           {/* Rent Now */}
           <Link
             href="/dresses"
-            className="font-sans text-[10px] tracking-[0.2em] uppercase border border-stone-700 text-stone-700 px-5 py-2 hover:bg-stone-800 hover:text-stone-100 hover:border-stone-800 transition-all duration-300"
+            className="font-sans text-[10px] tracking-[0.2em] uppercase border px-5 py-2 hover:text-(--user-bg) transition-all duration-300"
+            style={{
+              borderColor: "var(--user-text)",
+              color: "var(--user-text)",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "var(--user-text)";
+              e.currentTarget.style.color = "var(--user-bg)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "var(--user-text)";
+            }}
           >
             Rent Now
           </Link>
@@ -230,7 +279,8 @@ export default function Navbar() {
 
         {/* Hamburger (mobile) */}
         <button
-          className="md:hidden ml-auto text-stone-700 z-50"
+          className="md:hidden ml-auto z-50"
+          style={{ color: "var(--user-text)" }}
           onClick={() => setMenuOpen(!menuOpen)}
           aria-label="Toggle menu"
         >
@@ -269,10 +319,12 @@ export default function Navbar() {
 
         {/* Mobile menu overlay */}
         {menuOpen && (
-          <div className="fixed inset-0 bg-stone-50 z-40 flex flex-col items-center justify-center gap-8 md:hidden">
+          <div
+            className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-8 md:hidden"
+            style={{ background: "var(--user-bg)" }}
+          >
             {[
               { label: "Collection", href: "/dresses" },
-              { label: "New Arrivals", href: "/dresses" },
               { label: "About", href: "/about" },
               { label: "Rent Now", href: "/dresses" },
             ].map((item) => (
@@ -280,7 +332,8 @@ export default function Navbar() {
                 key={item.label}
                 href={item.href}
                 onClick={() => setMenuOpen(false)}
-                className="font-serif text-2xl font-[300] tracking-[0.15em] text-stone-800 hover:text-stone-500 transition-colors"
+                className="font-serif text-2xl font-light tracking-[0.15em] transition-colors"
+                style={{ color: "var(--user-text)" }}
               >
                 {item.label}
               </Link>
@@ -294,7 +347,8 @@ export default function Navbar() {
                     handleLogout();
                     setMenuOpen(false);
                   }}
-                  className="font-sans text-[10px] tracking-[0.2em] uppercase text-stone-400 hover:text-red-400 transition-colors"
+                  className="font-sans text-[10px] tracking-[0.2em] uppercase hover:text-red-400 transition-colors"
+                  style={{ color: "var(--user-text-muted)" }}
                 >
                   Keluar
                 </button>
@@ -303,15 +357,17 @@ export default function Navbar() {
                   <Link
                     href="/auth/login"
                     onClick={() => setMenuOpen(false)}
-                    className="font-sans text-[10px] tracking-[0.2em] uppercase text-stone-400 hover:text-stone-700 transition-colors"
+                    className="font-sans text-[10px] tracking-[0.2em] uppercase transition-colors"
+                    style={{ color: "var(--user-text-muted)" }}
                   >
                     Masuk
                   </Link>
-                  <span className="text-stone-300">·</span>
+                  <span style={{ color: "var(--user-text-faint)" }}>·</span>
                   <Link
                     href="/auth/register"
                     onClick={() => setMenuOpen(false)}
-                    className="font-sans text-[10px] tracking-[0.2em] uppercase text-stone-400 hover:text-stone-700 transition-colors"
+                    className="font-sans text-[10px] tracking-[0.2em] uppercase transition-colors"
+                    style={{ color: "var(--user-text-muted)" }}
                   >
                     Daftar
                   </Link>

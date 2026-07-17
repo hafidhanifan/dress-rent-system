@@ -4,6 +4,17 @@
   --background: #ffffff;
   --foreground: #171717;
 
+  /* User/Public Theme  */
+  --user-bg: #f0ebe3;
+  --user-bg-alt: #e6dfd6;
+  --user-text: #292524; /* stone-800 */
+  --user-text-secondary: #78716c; /* stone-500 */
+  --user-text-muted: #a8a29e; /* stone-400 */
+  --user-text-faint: #d6d3d1; /* stone-300 */
+  --user-border: #e7e5e4; /* stone-200 */
+  --user-accent: #c8a888;
+  --user-accent-alt: #b08060;
+
   /* Admin color theme */
   --admin-bg: #f5f0ea;
   --admin-sidebar-bg: #ede7de;

@@ -103,7 +103,7 @@ export default function SpotlightSection() {
             "seasonal" normal, "highlights" italic — persis seperti referensi
           */}
           <h2
-            className="font-serif font-[300] text-stone-800 leading-[1.1] tracking-[-0.01em]"
+            className="font-serif font-light text-stone-800 leading-[1.1] tracking-[-0.01em]"
             style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)" }}
           >
             Explore our <br />
@@ -124,7 +124,7 @@ export default function SpotlightSection() {
           >
             View All
             {/* Garis animasi hover */}
-            <span className="block w-8 h-[1px] bg-stone-400 group-hover:w-12 transition-all duration-300" />
+            <span className="block w-8 h-px bg-stone-400 group-hover:w-12 transition-all duration-300" />
           </Link>
         </div>
       </div>
@@ -197,7 +197,7 @@ function DressCard({
         </p>
 
         {/* Nama dress */}
-        <p className="font-serif font-[300] text-stone-800 text-base md:text-lg leading-snug group-hover:text-stone-500 transition-colors duration-300">
+        <p className="font-serif font-light text-stone-800 text-base md:text-lg leading-snug group-hover:text-stone-500 transition-colors duration-300">
           {dress.name}
         </p>
       </div>

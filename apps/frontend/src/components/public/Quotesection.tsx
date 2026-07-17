@@ -4,71 +4,67 @@
  * QuoteSection.tsx
  *
  * Cara kerja section ini:
- * 1. Section ini tingginya 300vh — tapi yang "kelihatan" hanya 100vh (sticky)
- * 2. Saat user scroll melewati 300vh tersebut, posisi visual tidak bergerak (sticky)
+ * 1. Section ini tingginya 500vh — tapi yang "kelihatan" hanya 100vh (sticky)
+ * 2. Saat user scroll melewati 500vh tersebut, posisi visual tidak bergerak (sticky)
  * 3. Scroll progress (0–1) dikonversi jadi animasi opacity per kata
  * 4. Setelah semua kata muncul (scroll habis), baru bisa lanjut scroll ke bawah
  */
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform, MotionValue } from "motion/react";
+import { useRef, useEffect } from "react";
+import {
+  motion,
+  useMotionValue,
+  useTransform,
+  MotionValue,
+} from "motion/react";
 
-// ─────────────────────────────────────────
-// Teks quote yang akan dianimasikan
-// Dipisah per kata supaya bisa reveal satu per satu
-// ─────────────────────────────────────────
 const QUOTE =
   "Every dress is a silent poem — it speaks of who you are before you say a word. Wear it with grace, move with confidence, and let every thread remind you that you were made to be seen, to be felt, and to be remembered.";
 const AUTHOR = "NAIA DRESS";
 
 export default function QuoteSection() {
-  // Ref ke container luar (yang tingginya 300vh)
-  // Ini yang di-track posisi scroll-nya
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // useScroll dari Motion — melacak seberapa jauh container sudah di-scroll
-  // scrollYProgress: 0 = belum masuk viewport, 1 = sudah terlewat
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    // "start start" = mulai hitung saat top container menyentuh top viewport
-    // "end end"     = selesai hitung saat bottom container menyentuh bottom viewport
-    offset: ["start start", "end end"],
-  });
+  // Hitung progress MANUAL langsung dari posisi scroll asli,
+  // tidak pakai useScroll dari Motion supaya tidak kena bug
+  // pengukuran internal yang kadang salah kalau ada layout shift
+  // (misal gambar yang belum selesai load bikin tinggi halaman berubah)
+  const scrollYProgress = useMotionValue(0);
 
-  // Pisah quote jadi array per kata: ["Every", "dress", "tells", ...]
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateProgress = () => {
+      const rect = el.getBoundingClientRect();
+      const total = el.offsetHeight - window.innerHeight;
+      if (total <= 0) return;
+      const scrolled = -rect.top;
+      const p = Math.min(1, Math.max(0, scrolled / total));
+      scrollYProgress.set(p);
+    };
+
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+    updateProgress();
+
+    return () => {
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, [scrollYProgress]);
+
   const words = QUOTE.split(" ");
 
   return (
-    /**
-     * Container luar — tinggi 300vh
-     * Fungsinya: memberi "ruang scroll" yang panjang
-     * Semakin tinggi nilai ini, semakin lambat animasinya
-     */
     <div ref={containerRef} className="relative h-[500vh]">
-      {/**
-       * Container dalam — sticky, tinggi 100vh
-       * "sticky top-0" = elemen ini akan "nempel" di atas viewport
-       * selama user scroll melewati container luar
-       * Jadi visual tidak bergerak, tapi scroll progress terus berjalan
-       */}
       <div className="sticky top-0 h-screen w-full bg-[#f0ebe3] flex flex-col items-center justify-center px-6 md:px-16 lg:px-24 overflow-hidden">
-        {/* Label kecil atas */}
         <p className="font-sans text-[9px] md:text-[10px] tracking-[0.35em] uppercase text-stone-400 mb-10 md:mb-14">
           Our Philosophy
         </p>
 
-        {/**
-         * Wrapper teks quote
-         * flex-wrap supaya kata-kata bisa turun ke baris berikutnya
-         * gap-x untuk jarak antar kata, gap-y untuk jarak antar baris
-         */}
         <div className="flex flex-wrap justify-center gap-x-[0.35em] gap-y-[0.1em] max-w-4xl">
           {words.map((word, i) => (
-            /**
-             * Setiap kata dibungkus <WordReveal>
-             * Masing-masing kata dapat range progress sendiri
-             * supaya reveal-nya stagger (tidak muncul semua sekaligus)
-             */
             <WordReveal
               key={i}
               word={word}
@@ -79,19 +75,14 @@ export default function QuoteSection() {
           ))}
         </div>
 
-        {/* Author / sumber quote — muncul setelah semua kata tampil */}
         <AuthorReveal author={AUTHOR} scrollYProgress={scrollYProgress} />
 
-        {/* Indikator scroll di pojok bawah */}
         <ScrollIndicator scrollYProgress={scrollYProgress} />
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────
-// Komponen: satu kata dengan animasi opacity
-// ─────────────────────────────────────────
 function WordReveal({
   word,
   index,
@@ -103,44 +94,17 @@ function WordReveal({
   total: number;
   scrollYProgress: MotionValue<number>;
 }) {
-  /**
-   * Hitung kapan kata ini mulai dan selesai muncul
-   *
-   * Kita bagi progress (0–1) jadi slot per kata
-   * Tapi ada overlap supaya tidak terasa terputus-putus
-   *
-   * Contoh dengan 10 kata:
-   * kata ke-0: muncul di progress 0.00 – 0.15
-   * kata ke-1: muncul di progress 0.08 – 0.23
-   * kata ke-2: muncul di progress 0.16 – 0.31
-   * dst...
-   *
-   * Kita sisakan 30% progress awal & akhir sebagai "buffer"
-   * supaya ada jeda sebelum animasi mulai dan sesudah selesai
-   */
-  const BUFFER_START = 0.1; // animasi mulai di 10% scroll
-  const BUFFER_END = 0.85; // animasi selesai di 85% scroll
+  const BUFFER_START = 0.1;
+  const BUFFER_END = 0.85;
   const range = BUFFER_END - BUFFER_START;
 
-  // Lebar satu slot kata (dengan overlap 40%)
   const slotWidth = (range / total) * 1.4;
 
-  // Titik mulai kata ini
   const start = BUFFER_START + (index / total) * range;
-  // Titik selesai kata ini
   const end = Math.min(start + slotWidth, BUFFER_END + 0.05);
 
-  /**
-   * useTransform: konversi scrollYProgress (0–1) jadi opacity (0.15–1)
-   * - Saat progress < start → opacity 0.15 (samar)
-   * - Saat progress > end   → opacity 1    (penuh)
-   */
   const opacity = useTransform(scrollYProgress, [start, end], [0.15, 1]);
 
-  /**
-   * Efek blur ringan — kata samar = sedikit blur, kata jelas = tidak blur
-   * Bikin efek "focus" yang dramatis
-   */
   const filter = useTransform(
     scrollYProgress,
     [start, end],
@@ -148,31 +112,24 @@ function WordReveal({
   );
 
   return (
-    /**
-     * Font serif besar, clamp untuk responsive:
-     * - min: 2rem  (mobile kecil)
-     * - ideal: 4.5vw
-     * - max: 4.5rem (desktop besar)
-     */
-    <motion.span
-      className="font-serif font-[300] text-stone-800 leading-[1.15] tracking-[-0.01em]"
-      style={{
-        opacity,
-        filter,
-        fontSize: "clamp(1.4rem, 3.2vw, 3.4rem)",
-        fontStyle: ["story", "grace,", "remembered."].includes(word)
-          ? "italic"
-          : "normal",
-      }}
-    >
-      {word}
-    </motion.span>
+    <span style={{ position: "relative", display: "inline-block" }}>
+      <motion.span
+        className="font-serif font-light text-stone-800 leading-[1.15] tracking-[-0.01em]"
+        style={{
+          opacity,
+          filter,
+          fontSize: "clamp(1.4rem, 3.2vw, 3.4rem)",
+          fontStyle: ["story", "grace,", "remembered."].includes(word)
+            ? "italic"
+            : "normal",
+        }}
+      >
+        {word}
+      </motion.span>
+    </span>
   );
 }
 
-// ─────────────────────────────────────────
-// Komponen: author — muncul di akhir
-// ─────────────────────────────────────────
 function AuthorReveal({
   author,
   scrollYProgress,
@@ -180,7 +137,6 @@ function AuthorReveal({
   author: string;
   scrollYProgress: MotionValue<number>;
 }) {
-  // Muncul di 85–95% progress (setelah semua kata tampil)
   const opacity = useTransform(scrollYProgress, [0.82, 0.95], [0, 1]);
   const y = useTransform(scrollYProgress, [0.82, 0.95], [12, 0]);
 
@@ -194,16 +150,11 @@ function AuthorReveal({
   );
 }
 
-// ─────────────────────────────────────────
-// Komponen: indikator scroll bawah
-// Menghilang saat sudah hampir selesai
-// ─────────────────────────────────────────
 function ScrollIndicator({
   scrollYProgress,
 }: {
   scrollYProgress: MotionValue<number>;
 }) {
-  // Hilang di 85% progress
   const opacity = useTransform(
     scrollYProgress,
     [0, 0.1, 0.8, 0.9],
@@ -218,8 +169,7 @@ function ScrollIndicator({
       <span className="font-sans text-[8px] tracking-[0.3em] uppercase text-stone-400">
         Scroll
       </span>
-      {/* Animasi garis turun — CSS keyframes */}
-      <div className="w-[1px] h-8 bg-stone-300 overflow-hidden relative">
+      <div className="w-px h-8 bg-stone-300 overflow-hidden relative">
         <div className="absolute inset-0 bg-stone-500 animate-scroll-line" />
       </div>
     </motion.div>
