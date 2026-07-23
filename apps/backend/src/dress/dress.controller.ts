@@ -78,6 +78,11 @@ export class DressController {
     return this.dressService.findBySlug(slug);
   }
 
+  @Get('spotlight')
+  findSpotlight() {
+    return this.dressService.findSpotlight();
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.dressService.findOne(id);
