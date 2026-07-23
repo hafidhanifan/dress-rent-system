@@ -109,6 +109,17 @@ export class CreateDressDto {
   })
   isActive?: boolean;
 
+  /**
+   * Urutan tampil di Spotlight Section — opsional
+   * Kosongkan / null kalau tidak mau ditampilkan di spotlight
+   */
+  @IsOptional()
+  @Transform(({ value }) =>
+    value !== undefined && value !== '' ? Number(value) : null,
+  )
+  @IsInt()
+  spotlightOrder?: number | null;
+
   @Transform(({ value }) => Number(value))
   @IsNotEmpty({ message: 'Kategori tidak boleh kosong' })
   @IsInt({ message: 'Kategori tidak valid' })
