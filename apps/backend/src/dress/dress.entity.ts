@@ -47,6 +47,14 @@ export class Dress {
   @Column({ default: true })
   isActive: boolean;
 
+  /**
+   * Urutan tampil di Spotlight Section homepage
+   * null = tidak ditampilkan di spotlight
+   * 1, 2, 3, dst = urutan tampil (semakin kecil semakin awal)
+   */
+  @Column({ type: 'int', nullable: true })
+  spotlightOrder: number | null;
+
   @ManyToOne(() => Category, { eager: true, nullable: false })
   @JoinColumn({ name: 'categoryId' })
   category: Category;
