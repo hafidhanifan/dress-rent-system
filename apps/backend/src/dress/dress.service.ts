@@ -7,7 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { Dress } from './dress.entity';
 import { DressPhoto } from './dress-photo.entity';
 import { DressSize } from './dress-size.entity';
@@ -126,6 +126,22 @@ export class DressService {
   async findAll(): Promise<Dress[]> {
     return this.dressRepo.find({
       order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findSpotlight(): Promise<Dress[]> {
+    const spotlighted = await this.dressRepo.find({
+      where: { spotlightOrder: Not(IsNull()), isActive: true },
+      order: { spotlightOrder: 'ASC' },
+      take: 4,
+    });
+
+    if (spotlighted.length > 0) return spotlighted;
+
+    return this.dressRepo.find({
+      where: { isActive: true, status: 'available' },
+      order: { createdAt: 'DESC' },
+      take: 4,
     });
   }
 
