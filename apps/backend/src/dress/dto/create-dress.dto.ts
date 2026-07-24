@@ -127,6 +127,13 @@ export class CreateDressDto {
   @IsInt()
   spotlightOrder?: number | null;
 
+  @IsOptional()
+  @Transform(({ value }) =>
+    value !== undefined && value !== '' ? Number(value) : null,
+  )
+  @IsInt()
+  displayOrder?: number | null;
+
   @Transform(({ value }) => Number(value))
   @IsNotEmpty({ message: 'Kategori tidak boleh kosong' })
   @IsInt({ message: 'Kategori tidak valid' })

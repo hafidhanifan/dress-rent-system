@@ -55,6 +55,14 @@ export class Dress {
   @Column({ type: 'int', nullable: true })
   spotlightOrder: number | null;
 
+  /**
+   * Urutan tampil di halaman /dresses
+   * null = fallback ke createdAt DESC (terbaru duluan)
+   * 1, 2, 3, dst = urutan custom (angka kecil tampil duluan)
+   */
+  @Column({ type: 'int', nullable: true })
+  displayOrder: number | null;
+
   @ManyToOne(() => Category, { eager: true, nullable: false })
   @JoinColumn({ name: 'categoryId' })
   category: Category;

@@ -124,9 +124,14 @@ export class DressService {
 
   // ── READ ALL ─────────────────────────────────────────────────
   async findAll(): Promise<Dress[]> {
-    return this.dressRepo.find({
-      order: { createdAt: 'DESC' },
-    });
+    return this.dressRepo
+      .createQueryBuilder('dress')
+      .leftJoinAndSelect('dress.category', 'category')
+      .leftJoinAndSelect('dress.photos', 'photos')
+      .leftJoinAndSelect('dress.sizes', 'sizes')
+      .orderBy('dress.displayOrder', 'ASC', 'NULLS LAST')
+      .addOrderBy('dress.createdAt', 'DESC')
+      .getMany();
   }
 
   async findSpotlight(): Promise<Dress[]> {

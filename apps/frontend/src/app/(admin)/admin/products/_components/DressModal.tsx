@@ -44,6 +44,7 @@ type Dress = {
   photos: DressPhoto[];
   sizes: DressSize[];
   spotlightOrder: number | null;
+  displayOrder: number | null;
 };
 type DressForm = {
   name: string;
@@ -57,8 +58,9 @@ type DressForm = {
   isActive: boolean;
   categoryId: string;
   sizes: DressSize[];
-  isSpotlight: boolean; // ← TAMBAHKAN INI
+  isSpotlight: boolean;
   spotlightOrder: string;
+  displayOrder: string;
 };
 
 const emptySize = (): DressSize => ({
@@ -83,6 +85,7 @@ const emptyForm = (): DressForm => ({
   sizes: [emptySize()],
   isSpotlight: false,
   spotlightOrder: "1",
+  displayOrder: "",
 });
 
 export default function DressModal({
@@ -131,6 +134,7 @@ export default function DressModal({
           spotlightOrder: dress.spotlightOrder
             ? String(dress.spotlightOrder)
             : "1",
+          displayOrder: dress.displayOrder ? String(dress.displayOrder) : "", // ← TAMBAHKAN INI
         }
       : emptyForm(),
   );
@@ -199,6 +203,7 @@ export default function DressModal({
       fd.append("material", form.material);
       fd.append("isActive", String(form.isActive));
       fd.append("spotlightOrder", form.isSpotlight ? form.spotlightOrder : "");
+      fd.append("displayOrder", form.displayOrder);
       fd.append("categoryId", form.categoryId);
       fd.append(
         "sizes",
@@ -532,6 +537,26 @@ export default function DressModal({
                     onChange={(e) => setField("minRentalDays", e.target.value)}
                     style={inp}
                   />
+                </div>
+                <div>
+                  <label style={lbl}>Urutan di Halaman Dresses</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={form.displayOrder}
+                    onChange={(e) => setField("displayOrder", e.target.value)}
+                    placeholder="Kosongkan = default (terbaru duluan)"
+                    style={inp}
+                  />
+                  <p
+                    style={{
+                      fontSize: 9,
+                      color: "var(--admin-text-faint)",
+                      marginTop: 4,
+                    }}
+                  >
+                    Angka kecil tampil lebih dulu
+                  </p>
                 </div>
               </div>
               <div
