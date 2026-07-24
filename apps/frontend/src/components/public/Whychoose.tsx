@@ -74,7 +74,8 @@ export default function WhyChooseSection() {
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-[#f0ebe3] overflow-hidden py-16 md:py-24 lg:py-32"
+      className="w-full overflow-hidden py-16 md:py-24 lg:py-32"
+      style={{ background: "var(--user-bg)" }}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
         {/*
@@ -137,9 +138,10 @@ export default function WhyChooseSection() {
             <span
               className="
                 absolute -bottom-6 left-0
-                font-serif text-[8rem] md:text-[10rem] font-[300]
-                text-stone-300/40 leading-none select-none pointer-events-none
+                font-serif text-[8rem] md:text-[10rem] font-light
+                leading-none select-none pointer-events-none
               "
+              style={{ color: "var(--user-text-faint)", opacity: 0.4 }}
             >
               N
             </span>
@@ -153,15 +155,19 @@ export default function WhyChooseSection() {
             <div
               data-reveal
               data-delay="0.1"
-              className="w-16 h-[1px] bg-stone-400 mb-8"
+              className="w-16 h-px mb-8"
+              style={{ background: "var(--user-text-muted)" }}
             />
 
             {/* Judul */}
             <h2
               data-reveal
               data-delay="0.15"
-              className="font-serif font-[300] text-stone-800 leading-[1.1] mb-4"
-              style={{ fontSize: "clamp(2rem, 3.5vw, 3rem)" }}
+              className="font-serif font-light leading-[1.1] mb-4"
+              style={{
+                fontSize: "clamp(2rem, 3.5vw, 3rem)",
+                color: "var(--user-text)",
+              }}
             >
               Why choose <em className="italic">Naia Dress?</em>
             </h2>
@@ -170,7 +176,8 @@ export default function WhyChooseSection() {
             <p
               data-reveal
               data-delay="0.2"
-              className="font-sans font-[300] text-stone-500 text-sm md:text-base leading-relaxed mb-10 md:mb-12 max-w-sm"
+              className="font-sans font-light text-sm md:text-base leading-relaxed mb-10 md:mb-12 max-w-sm"
+              style={{ color: "var(--user-text-secondary)" }}
             >
               We believe every woman deserves to look stunning — without having
               to own it all. Just rent, wear it, and shine.
@@ -186,7 +193,7 @@ export default function WhyChooseSection() {
                   className="flex items-start gap-4"
                 >
                   {/* Icon centang custom — SVG sederhana */}
-                  <span className="flex-shrink-0 mt-0.5">
+                  <span className="shrink-0 mt-0.5">
                     <svg
                       width="20"
                       height="20"
@@ -199,13 +206,13 @@ export default function WhyChooseSection() {
                         cx="10"
                         cy="10"
                         r="9"
-                        stroke="#a8a09a"
+                        stroke="var(--user-text-muted)"
                         strokeWidth="1"
                       />
                       {/* Centang */}
                       <path
                         d="M6 10.5l2.5 2.5 5.5-6"
-                        stroke="#a8a09a"
+                        stroke="var(--user-text-muted)"
                         strokeWidth="1.2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -215,10 +222,16 @@ export default function WhyChooseSection() {
 
                   {/* Teks fitur */}
                   <div>
-                    <p className="font-sans text-[10px] tracking-[0.2em] uppercase text-stone-700 mb-1">
+                    <p
+                      className="font-sans text-[10px] tracking-[0.2em] uppercase mb-1"
+                      style={{ color: "var(--user-text)" }}
+                    >
                       {f.title}
                     </p>
-                    <p className="font-sans font-[300] text-stone-400 text-sm leading-relaxed">
+                    <p
+                      className="font-sans font-light text-sm leading-relaxed"
+                      style={{ color: "var(--user-text-muted)" }}
+                    >
                       {f.desc}
                     </p>
                   </div>
@@ -233,8 +246,8 @@ export default function WhyChooseSection() {
                 className="
                   group inline-flex items-center gap-4
                   font-sans text-[10px] tracking-[0.25em] uppercase
-                  text-stone-600
                 "
+                style={{ color: "var(--user-text-secondary)" }}
               >
                 {/*
                   Tombol pill — background muda, border tipis
@@ -243,11 +256,19 @@ export default function WhyChooseSection() {
                 <span
                   className="
                     px-8 py-3.5
-                    bg-[#e8ddd4] hover:bg-[#ddd0c4]
-                    border border-stone-300
                     rounded-full
                     transition-colors duration-300
                   "
+                  style={{
+                    background: "var(--user-bg-alt)",
+                    border: "1px solid var(--user-border)",
+                  }}
+                  onMouseOver={(e) =>
+                    (e.currentTarget.style.background = "var(--user-accent)")
+                  }
+                  onMouseOut={(e) =>
+                    (e.currentTarget.style.background = "var(--user-bg-alt)")
+                  }
                 >
                   More About Us
                 </span>
