@@ -676,9 +676,16 @@ export default function DressModal({
                     <input
                       type="checkbox"
                       checked={form.isSpotlight}
-                      onChange={(e) =>
-                        setField("isSpotlight", e.target.checked)
-                      }
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setField("isSpotlight", checked);
+                        // Kalau admin aktifkan spotlight, pastikan "Tampilkan di Website"
+                        // juga otomatis aktif — supaya tidak ada kombinasi janggal
+                        // (spotlight nyala tapi dress tidak muncul di manapun)
+                        if (checked && !form.isActive) {
+                          setField("isActive", true);
+                        }
+                      }}
                       style={{ display: "none" }}
                     />
                     <div
@@ -721,6 +728,15 @@ export default function DressModal({
                       {form.isSpotlight ? "Aktif" : "Nonaktif"}
                     </span>
                   </label>
+                  <p
+                    style={{
+                      fontSize: 9,
+                      color: "var(--admin-text-faint)",
+                      marginTop: 4,
+                    }}
+                  >
+                    Otomatis mengaktifkan &quot;Tampilkan di Website&quot;
+                  </p>
                 </div>
 
                 {form.isSpotlight && (
