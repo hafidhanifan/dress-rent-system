@@ -1,203 +1,142 @@
-"use client";
+// src/components/public/Spotlightsection.tsx
+// Server Component — fetch data spotlight langsung dari backend
 
-import { useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-// ─────────────────────────────────────────────────────────────
-// Data dress spotlight
-// Ganti src dengan path foto aslimu, dan isi nama + kategori
-// ─────────────────────────────────────────────────────────────
-const dresses = [
-  {
-    id: 1,
-    name: "Aurelia Evening Gown",
-    category: "Evening Gown",
-    src: "/images/collection-1.jpg",
-    href: "/dresses/aurelia-evening-gown",
-  },
-  {
-    id: 2,
-    name: "Celeste Midi Dress",
-    category: "Midi Dress",
-    src: "/images/collection-2.jpg",
-    href: "/dresses/celeste-midi-dress",
-  },
-  {
-    id: 3,
-    name: "Vivienne Wrap Dress",
-    category: "Wrap Dress",
-    src: "/images/collection-3.jpg",
-    href: "/dresses/vivienne-wrap-dress",
-  },
-  {
-    id: 4,
-    name: "Noir Cocktail Dress",
-    category: "Cocktail",
-    src: "/images/collection-4.jpg",
-    href: "/dresses/noir-cocktail-dress",
-  },
-];
+const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
-export default function SpotlightSection() {
-  // Ref ke section untuk animasi scroll-in
-  const sectionRef = useRef<HTMLElement>(null);
+type Category = { id: number; name: string };
+type DressPhoto = {
+  id: number;
+  url: string;
+  isThumbnail: boolean;
+  order: number;
+};
+type Dress = {
+  id: number;
+  name: string;
+  slug: string;
+  category: Category;
+  photos: DressPhoto[];
+};
 
-  // ── Animasi scroll-in (sama seperti section lain) ──
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const items = Array.from(
-      section.querySelectorAll<HTMLElement>("[data-reveal]"),
+async function getSpotlightDresses(): Promise<Dress[]> {
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/dresses/spotlight`,
+      { cache: "no-store" },
     );
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
 
-    // Sembunyikan dulu semua elemen sebelum browser paint
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        items.forEach((el) => {
-          el.style.opacity = "0";
-          el.style.transform = "translateY(24px)";
-          el.style.transition = "opacity 0s, transform 0s";
-        });
+const getThumb = (d: Dress) =>
+  d.photos?.find((p) => p.isThumbnail) ?? d.photos?.[0];
 
-        // Observe section — animasikan saat masuk viewport
-        const observer = new IntersectionObserver(
-          ([entry]) => {
-            if (!entry.isIntersecting) return;
-            items.forEach((el) => {
-              const delay = parseFloat(el.dataset.delay ?? "0") * 1000;
-              setTimeout(() => {
-                el.style.transition =
-                  "opacity 0.75s ease, transform 0.75s ease";
-                el.style.opacity = "1";
-                el.style.transform = "translateY(0)";
-              }, delay);
-            });
-            observer.disconnect();
-          },
-          { threshold: 0, rootMargin: "0px 0px -60px 0px" },
-        );
+export default async function SpotlightSection() {
+  const dresses = await getSpotlightDresses();
 
-        observer.observe(section);
-      });
-    });
-  }, []);
+  // Kalau tidak ada dress sama sekali (database kosong), sembunyikan section
+  if (dresses.length === 0) return null;
 
   return (
     <section
-      ref={sectionRef}
-      className="w-full bg-[#f0ebe3] py-16 md:py-24 px-6 md:px-12 lg:px-20"
+      className="w-full py-16 md:py-24 px-6 md:px-12 lg:px-20"
+      style={{ background: "var(--user-bg)" }}
     >
-      {/* ── Header: label + judul + link View All ── */}
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-0 mb-10 md:mb-14">
-        {/* Kiri: label kecil + judul besar */}
-        <div data-reveal data-delay="0.05">
-          {/* Label kecil di atas judul */}
-          <p className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-400 mb-3">
+        <div>
+          <p
+            className="font-sans text-[9px] tracking-[0.35em] uppercase mb-3"
+            style={{ color: "var(--user-text-muted)" }}
+          >
             Spotlight
           </p>
-
-          {/*
-            Judul dengan mix normal + italic
-            "seasonal" normal, "highlights" italic — persis seperti referensi
-          */}
           <h2
-            className="font-serif font-light text-stone-800 leading-[1.1] tracking-[-0.01em]"
-            style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)" }}
+            className="font-serif font-light leading-[1.1] tracking-[-0.01em]"
+            style={{
+              fontSize: "clamp(2rem, 4vw, 3.2rem)",
+              color: "var(--user-text)",
+            }}
           >
             Explore our <br />
             seasonal <em className="italic">highlights</em>
           </h2>
         </div>
 
-        {/* Kanan: tombol View All — ganti icon < > dari referensi */}
-        <div data-reveal data-delay="0.15">
+        <div>
           <Link
             href="/dresses"
-            className="
-              group inline-flex items-center gap-3
-              font-sans text-[10px] tracking-[0.25em] uppercase
-              text-stone-500 hover:text-stone-800
-              transition-colors duration-300
-            "
+            className="group inline-flex items-center gap-3 font-sans text-[10px] tracking-[0.25em] uppercase transition-colors duration-300"
+            style={{ color: "var(--user-text-secondary)" }}
           >
             View All
-            {/* Garis animasi hover */}
-            <span className="block w-8 h-px bg-stone-400 group-hover:w-12 transition-all duration-300" />
+            <span
+              className="block w-8 h-px group-hover:w-12 transition-all duration-300"
+              style={{ background: "var(--user-text-muted)" }}
+            />
           </Link>
         </div>
       </div>
 
-      {/* ── Grid kartu dress ── */}
-      {/*
-        Layout:
-        - Mobile (< md)  : 1 kolom, scroll vertikal
-        - Tablet (md)    : 2 kolom
-        - Desktop (lg+)  : 4 kolom
-
-        Semua kartu tingginya sama (aspect-ratio 3/4)
-      */}
+      {/* Grid kartu dress */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
-        {dresses.map((dress, i) => (
-          <DressCard
-            key={dress.id}
-            dress={dress}
-            // Stagger delay: kartu ke-0 = 0.1s, ke-1 = 0.2s, dst
-            delay={0.1 + i * 0.1}
-          />
+        {dresses.map((dress) => (
+          <DressCard key={dress.id} dress={dress} thumb={getThumb(dress)} />
         ))}
       </div>
     </section>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Komponen kartu dress
-// ─────────────────────────────────────────────────────────────
 function DressCard({
   dress,
-  delay,
+  thumb,
 }: {
-  dress: (typeof dresses)[0];
-  delay: number;
+  dress: Dress;
+  thumb: DressPhoto | undefined;
 }) {
   return (
-    <Link
-      href={dress.href}
-      data-reveal
-      data-delay={String(delay)}
-      className="group block"
-    >
-      {/* ── Foto ── */}
-      {/*
-        - aspect-ratio 3/4 supaya semua kartu tingginya seragam
-        - overflow-hidden supaya efek zoom hover tidak keluar kotak
-        - relative wajib ada karena pakai <Image fill>
-      */}
+    <Link href={`/dresses/${dress.slug}`} className="group block">
       <div
-        className="relative overflow-hidden bg-[#e0d8cf] w-full"
-        style={{ aspectRatio: "3/4" }}
+        className="relative overflow-hidden w-full"
+        style={{ aspectRatio: "3/4", background: "var(--user-border)" }}
       >
-        <Image
-          src={dress.src}
-          alt={dress.name}
-          fill
-          // object-cover: gambar mengisi kotak tanpa distorsi
-          // object-top: prioritaskan bagian atas (kepala model)
-          className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
-        />
+        {thumb ? (
+          <Image
+            src={`${IMG_BASE}${thumb.url}`}
+            alt={dress.name}
+            fill
+            className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <span
+              className="font-sans text-[8px] tracking-widest uppercase"
+              style={{ color: "var(--user-text-faint)" }}
+            >
+              Foto belum tersedia
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* ── Info di bawah foto ── */}
       <div className="mt-3 md:mt-4">
-        {/* Kategori — kecil, uppercase */}
-        <p className="font-sans text-[8px] md:text-[9px] tracking-[0.3em] uppercase text-stone-400 mb-1">
-          {dress.category}
+        <p
+          className="font-sans text-[8px] md:text-[9px] tracking-[0.3em] uppercase mb-1"
+          style={{ color: "var(--user-text-muted)" }}
+        >
+          {dress.category?.name ?? "—"}
         </p>
-
-        {/* Nama dress */}
-        <p className="font-serif font-light text-stone-800 text-base md:text-lg leading-snug group-hover:text-stone-500 transition-colors duration-300">
+        <p
+          className="font-serif font-light text-base md:text-lg leading-snug transition-colors duration-300"
+          style={{ color: "var(--user-text)" }}
+        >
           {dress.name}
         </p>
       </div>

@@ -188,20 +188,54 @@ export class DressService {
     await this.dressRepo.save(dress);
 
     // Update ukuran — hapus lama, buat baru
+    // SESUDAH — upsert aman, tidak hapus size yang masih dipakai order lama
     if (sizes.length > 0) {
-      await this.sizeRepo.delete({ dressId: id });
-      const sizeEntities = sizes.map((s: CreateDressSizeDto) =>
-        this.sizeRepo.create({
-          label: s.label,
-          bust: s.bust ?? null,
-          waist: s.waist ?? null,
-          hip: s.hip ?? null,
-          length: s.length ?? null,
-          stock: s.stock ?? 1,
-          dressId: id,
-        }),
+      const existingSizes = await this.sizeRepo.find({
+        where: { dressId: id },
+      });
+      const incomingIds = sizes
+        .map((s) => s.id)
+        .filter((sid): sid is number => sid !== undefined);
+
+      // Update size yang sudah ada, atau buat baru kalau belum punya id
+      for (const s of sizes) {
+        if (s.id) {
+          await this.sizeRepo.update(s.id, {
+            label: s.label,
+            bust: s.bust ?? null,
+            waist: s.waist ?? null,
+            hip: s.hip ?? null,
+            length: s.length ?? null,
+            stock: s.stock ?? 1,
+          });
+        } else {
+          await this.sizeRepo.save(
+            this.sizeRepo.create({
+              label: s.label,
+              bust: s.bust ?? null,
+              waist: s.waist ?? null,
+              hip: s.hip ?? null,
+              length: s.length ?? null,
+              stock: s.stock ?? 1,
+              dressId: id,
+            }),
+          );
+        }
+      }
+
+      // Hapus size lama yang sudah tidak ada di payload —
+      // tapi SKIP kalau masih direferensikan order lama (FK constraint)
+      const sizesToRemove = existingSizes.filter(
+        (es) => !incomingIds.includes(es.id),
       );
-      await this.sizeRepo.save(sizeEntities);
+      for (const es of sizesToRemove) {
+        try {
+          await this.sizeRepo.delete(es.id);
+        } catch {
+          // Size ini masih dipakai di pesanan lama — biarkan saja,
+          // jangan gagalkan keseluruhan update dress
+        }
+      }
     }
 
     // Tambah foto baru jika ada

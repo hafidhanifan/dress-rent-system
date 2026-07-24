@@ -11,6 +11,13 @@ import {
 import { Transform } from 'class-transformer';
 
 export class CreateDressSizeDto {
+  @IsOptional()
+  @Transform(({ value }) =>
+    value !== undefined && value !== '' ? Number(value) : undefined,
+  )
+  @IsInt()
+  id?: number;
+
   @IsNotEmpty()
   @IsString()
   label: string;

@@ -18,6 +18,7 @@ type Dress = {
   categoryId: number;
   category: Category;
   photos: DressPhoto[];
+  isActive: boolean;
 };
 
 async function getDresses(): Promise<Dress[]> {
@@ -28,7 +29,7 @@ async function getDresses(): Promise<Dress[]> {
     );
     if (!res.ok) return [];
     const data = await res.json();
-    return data.filter((d: Dress) => d.status !== "archived");
+    return data.filter((d: Dress) => d.status !== "archived" && d.isActive);
   } catch {
     return [];
   }

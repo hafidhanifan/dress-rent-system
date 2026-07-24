@@ -43,6 +43,7 @@ type Dress = {
   category: Category;
   photos: DressPhoto[];
   sizes: DressSize[];
+  spotlightOrder: number | null;
 };
 type DressForm = {
   name: string;
@@ -56,6 +57,8 @@ type DressForm = {
   isActive: boolean;
   categoryId: string;
   sizes: DressSize[];
+  isSpotlight: boolean; // ← TAMBAHKAN INI
+  spotlightOrder: string;
 };
 
 const emptySize = (): DressSize => ({
@@ -78,6 +81,8 @@ const emptyForm = (): DressForm => ({
   isActive: true,
   categoryId: "",
   sizes: [emptySize()],
+  isSpotlight: false,
+  spotlightOrder: "1",
 });
 
 export default function DressModal({
@@ -120,6 +125,12 @@ export default function DressModal({
                 stock: String(s.stock ?? "1"),
               }))
             : [emptySize()],
+          // ← TAMBAHKAN 2 BARIS INI
+          isSpotlight:
+            dress.spotlightOrder !== null && dress.spotlightOrder !== undefined,
+          spotlightOrder: dress.spotlightOrder
+            ? String(dress.spotlightOrder)
+            : "1",
         }
       : emptyForm(),
   );
@@ -187,11 +198,15 @@ export default function DressModal({
       fd.append("color", form.color);
       fd.append("material", form.material);
       fd.append("isActive", String(form.isActive));
+      fd.append("spotlightOrder", form.isSpotlight ? form.spotlightOrder : "");
       fd.append("categoryId", form.categoryId);
       fd.append(
         "sizes",
         JSON.stringify(
           form.sizes.map((s) => ({
+            // Kirim id kalau size ini sudah ada (mode edit) —
+            // supaya backend tahu ini UPDATE, bukan bikin size baru
+            id: s.id ?? undefined,
             label: s.label,
             bust: s.bust ? Number(s.bust) : null,
             waist: s.waist ? Number(s.waist) : null,
@@ -633,6 +648,105 @@ export default function DressModal({
                     </span>
                   </label>
                 </div>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <label style={lbl}>Tampilkan di Spotlight</label>
+                  <label
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "9px 12px",
+                      borderRadius: 3,
+                      cursor: "pointer",
+                      border: `1px solid ${form.isSpotlight ? "rgba(212,180,120,0.4)" : BORDER}`,
+                      background: form.isSpotlight
+                        ? "var(--admin-accent-bg)"
+                        : "rgba(0,0,0,0.02)",
+                      transition: "all 0.2s",
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={form.isSpotlight}
+                      onChange={(e) =>
+                        setField("isSpotlight", e.target.checked)
+                      }
+                      style={{ display: "none" }}
+                    />
+                    <div
+                      style={{
+                        width: 32,
+                        height: 18,
+                        borderRadius: 9,
+                        position: "relative",
+                        background: form.isSpotlight
+                          ? "var(--admin-accent-bg)"
+                          : "var(--admin-border)",
+                        border: `1px solid ${form.isSpotlight ? "rgba(212,180,120,0.5)" : BORDER}`,
+                        transition: "all 0.2s",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 2,
+                          left: form.isSpotlight ? 14 : 2,
+                          width: 12,
+                          height: 12,
+                          borderRadius: "50%",
+                          background: form.isSpotlight
+                            ? GOLD
+                            : "var(--admin-text-faint)",
+                          transition: "all 0.2s",
+                        }}
+                      />
+                    </div>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: form.isSpotlight
+                          ? GOLD
+                          : "var(--admin-text-muted)",
+                      }}
+                    >
+                      {form.isSpotlight ? "Aktif" : "Nonaktif"}
+                    </span>
+                  </label>
+                </div>
+
+                {form.isSpotlight && (
+                  <div>
+                    <label style={lbl}>Urutan Tampil</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={form.spotlightOrder}
+                      onChange={(e) =>
+                        setField("spotlightOrder", e.target.value)
+                      }
+                      placeholder="1"
+                      style={inp}
+                    />
+                    <p
+                      style={{
+                        fontSize: 9,
+                        color: "var(--admin-text-faint)",
+                        marginTop: 4,
+                      }}
+                    >
+                      Angka kecil tampil lebih dulu
+                    </p>
+                  </div>
+                )}
               </div>
               <div>
                 <label style={lbl}>Deskripsi</label>
