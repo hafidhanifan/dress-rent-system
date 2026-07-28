@@ -99,7 +99,7 @@ export default function Footer() {
           {/* ── Kolom 1: Judul besar "Need Help?" ── */}
           <div data-reveal data-delay="0.05" className="lg:pr-8">
             <h2
-              className="font-serif font-[300] text-stone-700 leading-[1.05]"
+              className="font-serif font-light text-stone-700 leading-[1.05]"
               style={{ fontSize: "clamp(2.4rem, 4vw, 3.4rem)" }}
             >
               Need <br />
@@ -108,7 +108,7 @@ export default function Footer() {
             </h2>
 
             {/* Garis dekoratif bawah judul */}
-            <div className="w-10 h-[1px] bg-stone-400 mt-5" />
+            <div className="w-10 h-px bg-stone-400 mt-5" />
           </div>
 
           {/* ── Kolom 2, 3, 4: konten footer ── */}
@@ -120,12 +120,12 @@ export default function Footer() {
               className="flex flex-col"
             >
               {/* Judul kolom */}
-              <p className="font-sans text-[11px] font-[500] tracking-[0.15em] uppercase text-stone-600 mb-3">
+              <p className="font-sans text-[11px] font-medium tracking-[0.15em] uppercase text-stone-600 mb-3">
                 {col.heading}
               </p>
 
               {/* Deskripsi */}
-              <p className="font-sans font-[300] text-stone-500 text-sm leading-relaxed mb-6 flex-1">
+              <p className="font-sans font-light text-stone-500 text-sm leading-relaxed mb-6 flex-1">
                 {col.desc}
               </p>
 
@@ -147,7 +147,7 @@ export default function Footer() {
                   {col.linkLabel}
                 </Link>
                 {/* Garis oranye-nude di bawah link */}
-                <div className="w-10 h-[1px] bg-[#c8a888] mt-2 group-hover:w-14 transition-all duration-300" />
+                <div className="w-10 h-px bg-[#c8a888] mt-2 group-hover:w-14 transition-all duration-300" />
               </div>
             </div>
           ))}
@@ -158,7 +158,7 @@ export default function Footer() {
           GARIS PEMBATAS
       ══════════════════════════════════════ */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-        <div className="w-full h-[1px] bg-stone-300/60" />
+        <div className="w-full h-px bg-stone-300/60" />
       </div>
 
       {/* ══════════════════════════════════════
@@ -173,7 +173,7 @@ export default function Footer() {
             className="flex items-center gap-3"
           >
             {/* Logo teks kecil */}
-            <span className="font-serif text-sm font-[300] tracking-[0.2em] uppercase text-stone-500">
+            <span className="font-serif text-sm font-light tracking-[0.2em] uppercase text-stone-500">
               Naia Dress
             </span>
             <span className="text-stone-300">·</span>
