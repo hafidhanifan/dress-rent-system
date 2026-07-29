@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
+import Image from "next/image";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
@@ -228,10 +229,11 @@ function DressCard({
         style={{ aspectRatio: "3/4" }}
       >
         {thumb ? (
-          <img
+          <Image
             src={`${IMG_BASE}${thumb.url}`}
             alt={dress.name}
-            className="w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            fill
+            className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#e8e0d5]">
