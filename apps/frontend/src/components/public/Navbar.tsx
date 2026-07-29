@@ -41,6 +41,7 @@ export default function Navbar() {
           {[
             { label: "Collection", href: "/dresses" },
             { label: "About", href: "/about" },
+            { label: "Faq", href: "/faq" },
           ].map((item) => (
             <li key={item.label}>
               <Link
@@ -326,6 +327,7 @@ export default function Navbar() {
             {[
               { label: "Collection", href: "/dresses" },
               { label: "About", href: "/about" },
+              { label: "Faq", href: "/faq" },
               { label: "Rent Now", href: "/dresses" },
             ].map((item) => (
               <Link
