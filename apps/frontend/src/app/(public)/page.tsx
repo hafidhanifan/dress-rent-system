@@ -1,11 +1,11 @@
 // src/app/(public)/page.tsx
 // fetch categories, kirim sebagai prop ke CategoriesSection
 
-import HeroSection from "@/components/public/Herosection";
-import CategoriesSection from "@/components/public/Categoriessection";
-import QuoteSection from "@/components/public/Quotesection";
-import SpotlightSection from "@/components/public/Spotlightsection";
-import WhyChooseSection from "@/components/public/Whychoose";
+import HeroSection from "@/app/(public)/_components/Herosection";
+import CategoriesSection from "@/app/(public)/_components/Categoriessection";
+import QuoteSection from "@/app/(public)/_components/Quotesection";
+import SpotlightSection from "@/app/(public)/_components/Spotlightsection";
+import WhyChooseSection from "@/app/(public)/_components/Whychoose";
 
 type Category = { id: number; name: string; slug: string; isActive: boolean };
 
