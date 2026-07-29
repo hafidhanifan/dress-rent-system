@@ -64,43 +64,76 @@ export default function DressesList({
     });
 
   return (
-    <div className="min-h-screen bg-[#f0ebe3]">
+    <div className="min-h-screen" style={{ background: "var(--user-bg)" }}>
       <div className="pt-32 pb-14 px-6 text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
           <Link
             href="/"
-            className="font-sans text-[10px] tracking-[0.2em] uppercase text-stone-400 hover:text-stone-600 transition-colors"
+            className="font-sans text-[10px] tracking-[0.2em] uppercase transition-colors"
+            style={{ color: "var(--user-text-muted)" }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-secondary)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-muted)")
+            }
           >
             Home
           </Link>
-          <span className="text-stone-300 text-xs">/</span>
-          <span className="font-sans text-[10px] tracking-[0.2em] uppercase text-stone-600">
+          <span className="text-xs" style={{ color: "var(--user-text-faint)" }}>
+            /
+          </span>
+          <span
+            className="font-sans text-[10px] tracking-[0.2em] uppercase"
+            style={{ color: "var(--user-text-secondary)" }}
+          >
             All Dresses
           </span>
         </div>
 
         <h1
-          className="font-serif font-light text-stone-800 leading-none mb-5"
-          style={{ fontSize: "clamp(2.8rem, 7vw, 6rem)" }}
+          className="font-serif font-light leading-none mb-5"
+          style={{
+            color: "var(--user-text)",
+            fontSize: "clamp(2.8rem, 7vw, 6rem)",
+          }}
         >
           All <em className="italic">Dresses</em>
         </h1>
 
-        <p className="font-sans font-light text-stone-400 text-sm leading-relaxed max-w-md mx-auto">
+        <p
+          className="font-sans font-light text-sm leading-relaxed max-w-md mx-auto"
+          style={{ color: "var(--user-text-muted)" }}
+        >
           Setiap gaun adalah sebuah cerita — temukan yang paling sempurna untuk
           momenmu.
         </p>
 
         <div className="flex items-center justify-center gap-4 mt-8">
-          <div className="w-12 h-px bg-stone-300" />
-          <span className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-300">
+          <div
+            className="w-12 h-px"
+            style={{ background: "var(--user-text-faint)" }}
+          />
+          <span
+            className="font-sans text-[9px] tracking-[0.35em] uppercase"
+            style={{ color: "var(--user-text-faint)" }}
+          >
             {filtered.length} dress
           </span>
-          <div className="w-12 h-px bg-stone-300" />
+          <div
+            className="w-12 h-px"
+            style={{ background: "var(--user-text-faint)" }}
+          />
         </div>
       </div>
 
-      <div className="sticky top-0 z-20 bg-[#f0ebe3]/90 backdrop-blur-sm border-b border-stone-200/60">
+      <div
+        className="sticky top-0 z-20 backdrop-blur-sm"
+        style={{
+          background: "color-mix(in srgb, var(--user-bg) 90%, transparent)",
+          borderBottom: "1px solid var(--user-border)",
+        }}
+      >
         <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
             {[
@@ -113,11 +146,16 @@ export default function DressesList({
               <button
                 key={cat.slug}
                 onClick={() => setActiveCat(cat.slug)}
-                className={`font-sans text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full border transition-all duration-200 ${
-                  activeCat === cat.slug
-                    ? "bg-stone-800 text-stone-100 border-stone-800"
-                    : "bg-transparent text-stone-500 border-stone-300 hover:border-stone-500 hover:text-stone-700"
-                }`}
+                className="font-sans text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full transition-all duration-200"
+                style={{
+                  background:
+                    activeCat === cat.slug ? "var(--user-text)" : "transparent",
+                  color:
+                    activeCat === cat.slug
+                      ? "var(--user-bg)"
+                      : "var(--user-text-secondary)",
+                  border: `1px solid ${activeCat === cat.slug ? "var(--user-text)" : "var(--user-border)"}`,
+                }}
               >
                 {cat.name}
               </button>
@@ -132,7 +170,8 @@ export default function DressesList({
                 viewBox="0 0 24 24"
                 stroke="currentColor"
                 strokeWidth={1.5}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
+                className="absolute left-3 top-1/2 -translate-y-1/2"
+                style={{ color: "var(--user-text-muted)" }}
               >
                 <path
                   strokeLinecap="round"
@@ -145,13 +184,21 @@ export default function DressesList({
                 placeholder="Cari dress..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent border border-stone-200 rounded-full pl-8 pr-4 py-1.5 font-sans text-[11px] text-stone-600 placeholder:text-stone-300 outline-none focus:border-stone-400 transition-colors w-36 md:w-44"
+                className="bg-transparent rounded-full pl-8 pr-4 py-1.5 font-sans text-[11px] outline-none transition-colors w-36 md:w-44"
+                style={{
+                  border: "1px solid var(--user-border)",
+                  color: "var(--user-text-secondary)",
+                }}
               />
             </div>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as typeof sort)}
-              className="bg-transparent border border-stone-200 rounded-full px-3 py-1.5 font-sans text-[11px] text-stone-500 outline-none cursor-pointer focus:border-stone-400 transition-colors appearance-none"
+              className="bg-transparent rounded-full px-3 py-1.5 font-sans text-[11px] outline-none cursor-pointer transition-colors appearance-none"
+              style={{
+                border: "1px solid var(--user-border)",
+                color: "var(--user-text-secondary)",
+              }}
             >
               <option value="default">Urutan Default</option>
               <option value="price-asc">Harga Terendah</option>
@@ -164,10 +211,16 @@ export default function DressesList({
       <main className="max-w-7xl mx-auto px-6 md:px-10 py-12 md:py-16">
         {filtered.length === 0 ? (
           <div className="text-center py-24">
-            <p className="font-serif font-light text-stone-400 text-2xl mb-3">
+            <p
+              className="font-serif font-light text-2xl mb-3"
+              style={{ color: "var(--user-text-muted)" }}
+            >
               Dress tidak ditemukan
             </p>
-            <p className="font-sans text-sm text-stone-400">
+            <p
+              className="font-sans text-sm"
+              style={{ color: "var(--user-text-muted)" }}
+            >
               Coba ubah filter atau kata pencarian
             </p>
             <button
@@ -175,7 +228,21 @@ export default function DressesList({
                 setSearch("");
                 setActiveCat("all");
               }}
-              className="mt-6 font-sans text-[10px] tracking-[0.2em] uppercase text-stone-500 border border-stone-300 px-5 py-2 hover:bg-stone-800 hover:text-stone-100 hover:border-stone-800 transition-all duration-300"
+              className="mt-6 font-sans text-[10px] tracking-[0.2em] uppercase px-5 py-2 transition-all duration-300"
+              style={{
+                color: "var(--user-text-secondary)",
+                border: "1px solid var(--user-border)",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "var(--user-text)";
+                e.currentTarget.style.color = "var(--user-bg)";
+                e.currentTarget.style.borderColor = "var(--user-text)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+                e.currentTarget.style.color = "var(--user-text-secondary)";
+                e.currentTarget.style.borderColor = "var(--user-border)";
+              }}
             >
               Reset Filter
             </button>
@@ -192,8 +259,14 @@ export default function DressesList({
                 />
               ))}
             </div>
-            <div className="text-center mt-20 pt-12 border-t border-stone-200/60">
-              <p className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-300">
+            <div
+              className="text-center mt-20 pt-12"
+              style={{ borderTop: "1px solid var(--user-border)" }}
+            >
+              <p
+                className="font-sans text-[9px] tracking-[0.35em] uppercase"
+                style={{ color: "var(--user-text-faint)" }}
+              >
                 Menampilkan {filtered.length} dari {initialDresses.length} dress
               </p>
             </div>
@@ -225,8 +298,8 @@ function DressCard({
       style={{ marginTop: isMid ? "-2rem" : "0" }}
     >
       <div
-        className="relative overflow-hidden bg-stone-200/60 w-full"
-        style={{ aspectRatio: "3/4" }}
+        className="relative overflow-hidden w-full"
+        style={{ aspectRatio: "3/4", background: "var(--user-border)" }}
       >
         {thumb ? (
           <Image
@@ -236,16 +309,31 @@ function DressCard({
             className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-[#e8e0d5]">
-            <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400">
+          <div
+            className="w-full h-full flex flex-col items-center justify-center gap-2"
+            style={{ background: "var(--user-border)" }}
+          >
+            <span
+              className="font-sans text-[9px] tracking-widest uppercase"
+              style={{ color: "var(--user-text-muted)" }}
+            >
               Foto belum tersedia
             </span>
           </div>
         )}
 
         {dress.status === "unavailable" && (
-          <div className="absolute top-3 left-3 bg-stone-800/80 backdrop-blur-sm px-3 py-1">
-            <p className="font-sans text-[8px] tracking-[0.2em] uppercase text-stone-300">
+          <div
+            className="absolute top-3 left-3 backdrop-blur-sm px-3 py-1"
+            style={{
+              background:
+                "color-mix(in srgb, var(--user-text) 80%, transparent)",
+            }}
+          >
+            <p
+              className="font-sans text-[8px] tracking-[0.2em] uppercase"
+              style={{ color: "var(--user-text-faint)" }}
+            >
               Tidak Tersedia
             </p>
           </div>
@@ -261,7 +349,11 @@ function DressCard({
             }
             await toggleWishlist(dress.id);
           }}
-          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 ${wishlisted ? "!opacity-100 !scale-100 bg-white/95" : "bg-white/70"}`}
+          className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 ${
+            wishlisted
+              ? "opacity-100 scale-100 bg-white/95"
+              : "opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100 bg-white/70"
+          }`}
           aria-label={wishlisted ? "Hapus dari wishlist" : "Tambah ke wishlist"}
         >
           <svg
@@ -278,26 +370,46 @@ function DressCard({
           </svg>
         </button>
 
-        <div className="absolute inset-0 bg-stone-900/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none" />
+        <div
+          className="absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 pointer-events-none"
+          style={{
+            background: "color-mix(in srgb, var(--user-text) 10%, transparent)",
+          }}
+        />
         <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 translate-y-2 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 pointer-events-none">
-          <span className="font-sans text-[9px] tracking-[0.25em] uppercase bg-[#f0ebe3]/90 backdrop-blur-sm text-stone-700 px-5 py-2">
+          <span
+            className="font-sans text-[9px] tracking-[0.25em] uppercase backdrop-blur-sm px-5 py-2"
+            style={{
+              background: "color-mix(in srgb, var(--user-bg) 90%, transparent)",
+              color: "var(--user-text-secondary)",
+            }}
+          >
             Lihat Detail
           </span>
         </div>
       </div>
 
       <div className="mt-4">
-        <p className="font-sans text-[9px] tracking-[0.25em] uppercase text-stone-400 mb-1.5">
+        <p
+          className="font-sans text-[9px] tracking-[0.25em] uppercase mb-1.5"
+          style={{ color: "var(--user-text-muted)" }}
+        >
           {dress.category?.name ?? "—"}
         </p>
         <h2
-          className="font-serif font-light text-stone-800 leading-snug mb-2 group-hover:text-stone-500 transition-colors duration-300"
-          style={{ fontSize: "clamp(1.1rem, 2vw, 1.4rem)" }}
+          className="font-serif font-light leading-snug mb-2 transition-colors duration-300"
+          style={{
+            color: "var(--user-text)",
+            fontSize: "clamp(1.1rem, 2vw, 1.4rem)",
+          }}
         >
           {dress.name}
         </h2>
         {dress.description && (
-          <p className="font-sans font-light text-stone-400 text-xs leading-relaxed line-clamp-2">
+          <p
+            className="font-sans font-light text-xs leading-relaxed line-clamp-2"
+            style={{ color: "var(--user-text-muted)" }}
+          >
             {dress.description}
           </p>
         )}

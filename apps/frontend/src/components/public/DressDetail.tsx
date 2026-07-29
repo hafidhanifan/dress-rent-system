@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
+import Image from "next/image";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
@@ -119,7 +120,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
             Dresses
           </Link>
           <span className="text-stone-300 text-xs">/</span>
-          <span className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-600 truncate max-w-[160px]">
+          <span className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-600 truncate max-w-40">
             {dress.name}
           </span>
         </div>
@@ -132,18 +133,25 @@ export default function DressDetail({ dress }: { dress: Dress }) {
           <div className="flex flex-col gap-4">
             {/* Foto utama */}
             <div
-              className="relative overflow-hidden bg-stone-200/60 w-full"
-              style={{ aspectRatio: "3/4" }}
+              className="relative overflow-hidden w-full"
+              style={{ aspectRatio: "3/4", background: "var(--user-border)" }}
             >
               {activePhoto ? (
-                <img
+                <Image
                   src={`${IMG_BASE}${activePhoto.url}`}
                   alt={dress.name}
-                  className="w-full h-full object-cover object-top transition-opacity duration-300"
+                  fill
+                  className="object-cover object-top transition-opacity duration-300"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-[#e8e0d5]">
-                  <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400">
+                <div
+                  className="w-full h-full flex items-center justify-center"
+                  style={{ background: "var(--user-border)" }}
+                >
+                  <span
+                    className="font-sans text-[9px] tracking-widest uppercase"
+                    style={{ color: "var(--user-text-muted)" }}
+                  >
                     Foto belum tersedia
                   </span>
                 </div>
@@ -151,8 +159,17 @@ export default function DressDetail({ dress }: { dress: Dress }) {
 
               {/* Badge status */}
               {dress.status !== "available" && (
-                <div className="absolute top-4 left-4 bg-stone-800/80 backdrop-blur-sm px-3 py-1.5">
-                  <p className="font-sans text-[8px] tracking-[0.2em] uppercase text-stone-300">
+                <div
+                  className="absolute top-4 left-4 backdrop-blur-sm px-3 py-1.5"
+                  style={{
+                    background:
+                      "color-mix(in srgb, var(--user-text) 80%, transparent)",
+                  }}
+                >
+                  <p
+                    className="font-sans text-[8px] tracking-[0.2em] uppercase"
+                    style={{ color: "var(--user-text-faint)" }}
+                  >
                     {st.text}
                   </p>
                 </div>
@@ -188,18 +205,20 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                   <button
                     key={photo.id}
                     onClick={() => setActivePhoto(photo)}
-                    className="flex-shrink-0 overflow-hidden transition-all duration-200"
+                    className="shrink-0 overflow-hidden transition-all duration-200"
                     style={{
                       width: 72,
                       height: 96,
+                      position: "relative",
                       border: `2px solid ${activePhoto?.id === photo.id ? "#1c1917" : "transparent"}`,
                       opacity: activePhoto?.id === photo.id ? 1 : 0.55,
                     }}
                   >
-                    <img
+                    <Image
                       src={`${IMG_BASE}${photo.url}`}
                       alt=""
-                      className="w-full h-full object-cover object-top"
+                      fill
+                      className="object-cover object-top"
                     />
                   </button>
                 ))}
@@ -216,7 +235,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
 
             {/* Nama */}
             <h1
-              className="font-serif font-[300] text-stone-800 leading-tight mb-4"
+              className="font-serif font-light text-stone-800 leading-tight mb-4"
               style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
             >
               {dress.name}
@@ -225,12 +244,12 @@ export default function DressDetail({ dress }: { dress: Dress }) {
             {/* Harga */}
             <div className="flex items-baseline gap-2 mb-2">
               <span
-                className="font-serif font-[300] text-stone-800"
+                className="font-serif font-light text-stone-800"
                 style={{ fontSize: "clamp(1.4rem, 2.5vw, 1.8rem)" }}
               >
                 {formatPrice(dress.pricePerDay)}
               </span>
-              <span className="font-sans text-[10px] tracking-[0.1em] uppercase text-stone-400">
+              <span className="font-sans text-[10px] tracking-widest uppercase text-stone-400">
                 / hari
               </span>
             </div>
@@ -244,11 +263,11 @@ export default function DressDetail({ dress }: { dress: Dress }) {
             )}
 
             {/* Garis pemisah */}
-            <div className="w-full h-[1px] bg-stone-200 my-6" />
+            <div className="w-full h-px bg-stone-200 my-6" />
 
             {/* Deskripsi */}
             {dress.description && (
-              <p className="font-sans font-[300] text-stone-500 text-sm leading-relaxed mb-8">
+              <p className="font-sans font-light text-stone-500 text-sm leading-relaxed mb-8">
                 {dress.description}
               </p>
             )}
@@ -286,7 +305,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                             key={size.id}
                             onClick={() => setSelectedSize(size)}
                             disabled={size.stock === 0}
-                            className="font-sans text-[10px] tracking-[0.1em] uppercase px-4 py-2 border transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                            className="font-sans text-[10px] tracking-widest uppercase px-4 py-2 border transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
                             style={{
                               borderColor:
                                 selectedSize?.id === size.id
@@ -347,7 +366,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                                     key={item.label}
                                     className="flex justify-between items-center py-1 border-b border-stone-200/60"
                                   >
-                                    <span className="font-sans text-[9px] tracking-[0.1em] uppercase text-stone-400">
+                                    <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400">
                                       {item.label}
                                     </span>
                                     <span className="font-sans text-xs text-stone-600">
@@ -462,7 +481,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                     viewBox="0 0 24 24"
                     stroke="#a8a29e"
                     strokeWidth={1.5}
-                    className="flex-shrink-0"
+                    className="shrink-0"
                   >
                     <path
                       strokeLinecap="round"
