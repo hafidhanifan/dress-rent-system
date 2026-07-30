@@ -1,5 +1,5 @@
 // INI SERVER COMPONENT — tidak ada "use client"
-import DressesList from "@/components/public/DressesList";
+import DressesList from "@/app/(public)/dresses/_components/DressesList";
 
 type Category = { id: number; name: string; slug: string; isActive: boolean };
 type DressPhoto = {

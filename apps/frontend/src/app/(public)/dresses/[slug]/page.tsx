@@ -2,7 +2,7 @@
 // Server Component — fetch data dress berdasarkan slug
 
 import { notFound } from "next/navigation";
-import DressDetail from "@/components/public/DressDetail";
+import DressDetail from "@/app/(public)/dresses/_components/DressDetail";
 
 export const dynamic = "force-dynamic";
 
