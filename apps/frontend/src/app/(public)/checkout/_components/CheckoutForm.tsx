@@ -460,15 +460,15 @@ export default function CheckoutForm({
                             className="font-sans text-[10px] tracking-widest uppercase px-4 py-2 border transition-all duration-200"
                             style={{
                               borderColor:
-                                selectedSize?.id === size.id
+                                selectedSize?.["id"] === size.id
                                   ? "var(--user-text)"
                                   : "var(--user-border)",
                               background:
-                                selectedSize?.id === size.id
+                                selectedSize?.["id"] === size.id
                                   ? "var(--user-text)"
                                   : "transparent",
                               color:
-                                selectedSize?.id === size.id
+                                selectedSize?.["id"] === size.id
                                   ? "var(--user-bg)"
                                   : "var(--user-text-secondary)",
                             }}
