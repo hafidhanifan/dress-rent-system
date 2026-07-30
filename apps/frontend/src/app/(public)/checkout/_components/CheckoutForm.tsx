@@ -14,12 +14,14 @@ const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
 type Category = { id: number; name: string };
+
 type DressPhoto = {
   id: number;
   url: string;
   isThumbnail: boolean;
   order: number;
 };
+
 type DressSize = {
   id: number;
   label: string;
@@ -29,6 +31,7 @@ type DressSize = {
   length: number | null;
   stock: number;
 };
+
 type Dress = {
   id: number;
   name: string;
@@ -41,6 +44,25 @@ type Dress = {
   photos: DressPhoto[];
   sizes: DressSize[];
 };
+
+// Deklarasi tipe untuk Midtrans Snap — SDK ini tidak resmi punya types
+type MidtransSnap = {
+  pay: (
+    token: string,
+    options: {
+      onSuccess: (result: unknown) => void;
+      onPending: (result: unknown) => void;
+      onError: (result: unknown) => void;
+      onClose: () => void;
+    },
+  ) => void;
+};
+
+declare global {
+  interface Window {
+    snap?: MidtransSnap;
+  }
+}
 
 const formatPrice = (n: number) =>
   new Intl.NumberFormat("id-ID", {
@@ -68,7 +90,7 @@ export default function CheckoutForm({
   initialSize: DressSize | null;
 }) {
   const router = useRouter();
-  const { user, loggedIn, ready } = useAuth();
+  const { loggedIn, ready } = useAuth();
   const [selectedSize, setSelectedSize] = useState<DressSize | null>(
     initialSize,
   );
@@ -90,7 +112,7 @@ export default function CheckoutForm({
         `/auth/login?redirect=/checkout?dressId=${dress.id}${initialSize ? `&sizeId=${initialSize.id}` : ""}`,
       );
     }
-  }, [ready, loggedIn]);
+  }, [ready, loggedIn, dress.id, initialSize, router]);
 
   const totalDays =
     dateRange.startDate && dateRange.endDate
@@ -150,7 +172,7 @@ export default function CheckoutForm({
       }
 
       // 3. Tampilkan popup Midtrans
-      const snapWindow = (window as any).snap;
+      const snapWindow = window.snap;
       if (!snapWindow) {
         setError("Midtrans tidak tersedia, coba refresh halaman");
         setLoading(false);
@@ -158,15 +180,15 @@ export default function CheckoutForm({
       }
 
       snapWindow.pay(snapData.snapToken, {
-        onSuccess: (result: any) => {
+        onSuccess: (result: unknown) => {
           console.log("Pembayaran berhasil:", result);
           router.push(`/orders/${order.id}?payment=finish`);
         },
-        onPending: (result: any) => {
+        onPending: (result: unknown) => {
           console.log("Menunggu pembayaran:", result);
           router.push(`/orders/${order.id}?payment=pending`);
         },
-        onError: (result: any) => {
+        onError: (result: unknown) => {
           console.log("Pembayaran gagal:", result);
           setError("Pembayaran gagal, silakan coba lagi");
           setLoading(false);
@@ -185,23 +207,36 @@ export default function CheckoutForm({
   if (!ready) return null;
 
   return (
-    <div className="min-h-screen bg-[#f0ebe3]">
+    <div className="min-h-screen" style={{ background: "var(--user-bg)" }}>
       {/* Header */}
       <div className="pt-24 pb-8 px-6 md:px-10 max-w-6xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Link
             href={`/dresses/${dress.slug}`}
-            className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 hover:text-stone-600 transition-colors"
+            className="font-sans text-[9px] tracking-[0.2em] uppercase transition-colors"
+            style={{ color: "var(--user-text-muted)" }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-secondary)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-muted)")
+            }
           >
             ← Kembali
           </Link>
         </div>
-        <p className="font-sans text-[9px] tracking-[0.35em] uppercase text-stone-400 mb-2">
+        <p
+          className="font-sans text-[9px] tracking-[0.35em] uppercase mb-2"
+          style={{ color: "var(--user-text-muted)" }}
+        >
           Pemesanan
         </p>
         <h1
-          className="font-serif font-light text-stone-800"
-          style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)" }}
+          className="font-serif font-light"
+          style={{
+            fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+            color: "var(--user-text)",
+          }}
         >
           Konfirmasi <em className="italic">Pesanan</em>
         </h1>
@@ -222,33 +257,62 @@ export default function CheckoutForm({
                     <div
                       className="w-6 h-6 rounded-full flex items-center justify-center font-sans text-[10px] transition-all duration-200"
                       style={{
-                        background: step >= s.n ? "#1c1917" : "#e7e5e4",
-                        color: step >= s.n ? "#f0ebe3" : "#a8a29e",
+                        background:
+                          step >= s.n
+                            ? "var(--user-text)"
+                            : "var(--user-border)",
+                        color:
+                          step >= s.n
+                            ? "var(--user-bg)"
+                            : "var(--user-text-muted)",
                       }}
                     >
                       {step > s.n ? "✓" : s.n}
                     </div>
                     <span
-                      className="font-sans text-[10px] tracking-[0.1em] uppercase"
-                      style={{ color: step >= s.n ? "#1c1917" : "#a8a29e" }}
+                      className="font-sans text-[10px] tracking-widest uppercase"
+                      style={{
+                        color:
+                          step >= s.n
+                            ? "var(--user-text)"
+                            : "var(--user-text-muted)",
+                      }}
                     >
                       {s.label}
                     </span>
                   </div>
-                  {i < 1 && <div className="w-8 h-px bg-stone-300" />}
+                  {i < 1 && (
+                    <div
+                      className="w-8 h-px"
+                      style={{ background: "var(--user-border)" }}
+                    />
+                  )}
                 </div>
               ))}
             </div>
 
             {/* ── Step 1: Pilih tanggal ── */}
             {step === 1 && (
-              <div className="bg-white/50 border border-stone-200/60 p-6 md:p-8">
-                <h2 className="font-serif font-light text-stone-800 text-xl mb-1">
+              <div
+                className="p-6 md:p-8"
+                style={{
+                  background:
+                    "color-mix(in srgb, var(--user-bg-alt) 50%, transparent)",
+                  border: "1px solid var(--user-border)",
+                }}
+              >
+                <h2
+                  className="font-serif font-light text-xl mb-1"
+                  style={{ color: "var(--user-text)" }}
+                >
                   Pilih Tanggal Sewa
                 </h2>
-                <p className="font-sans text-[11px] text-stone-400 mb-6">
+                <p
+                  className="font-sans text-[11px] mb-6"
+                  style={{ color: "var(--user-text-muted)" }}
+                >
                   Minimal sewa{" "}
-                  <span className="text-stone-600">
+                  <span style={{ color: "var(--user-text-secondary)" }}>
                     {dress.minRentalDays} hari
                   </span>
                 </p>
@@ -261,22 +325,40 @@ export default function CheckoutForm({
 
                 {/* Tampilkan ringkasan tanggal yang dipilih */}
                 {dateRange.startDate && dateRange.endDate && (
-                  <div className="mt-6 p-4 bg-[#f0ebe3] border border-stone-200">
+                  <div
+                    className="mt-6 p-4"
+                    style={{
+                      background: "var(--user-bg)",
+                      border: "1px solid var(--user-border)",
+                    }}
+                  >
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 mb-1">
+                        <p
+                          className="font-sans text-[9px] tracking-[0.2em] uppercase mb-1"
+                          style={{ color: "var(--user-text-muted)" }}
+                        >
                           Tanggal Sewa
                         </p>
-                        <p className="font-sans text-sm text-stone-700">
+                        <p
+                          className="font-sans text-sm"
+                          style={{ color: "var(--user-text-secondary)" }}
+                        >
                           {formatDate(dateRange.startDate)} —{" "}
                           {formatDate(dateRange.endDate)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 mb-1">
+                        <p
+                          className="font-sans text-[9px] tracking-[0.2em] uppercase mb-1"
+                          style={{ color: "var(--user-text-muted)" }}
+                        >
                           Durasi
                         </p>
-                        <p className="font-serif font-light text-stone-800 text-lg">
+                        <p
+                          className="font-serif font-light text-lg"
+                          style={{ color: "var(--user-text)" }}
+                        >
                           {totalDays} hari
                         </p>
                       </div>
@@ -294,8 +376,12 @@ export default function CheckoutForm({
                   disabled={!canProceed}
                   className="w-full mt-6 py-4 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
                   style={{
-                    background: canProceed ? "#1c1917" : "#e7e5e4",
-                    color: canProceed ? "#f0ebe3" : "#a8a29e",
+                    background: canProceed
+                      ? "var(--user-text)"
+                      : "var(--user-border)",
+                    color: canProceed
+                      ? "var(--user-bg)"
+                      : "var(--user-text-muted)",
                     cursor: canProceed ? "pointer" : "not-allowed",
                   }}
                 >
@@ -307,8 +393,18 @@ export default function CheckoutForm({
             {/* ── Step 2: Ringkasan & konfirmasi ── */}
             {step === 2 && (
               <div className="space-y-5">
-                <div className="bg-white/50 border border-stone-200/60 p-6 md:p-8">
-                  <h2 className="font-serif font-light text-stone-800 text-xl mb-5">
+                <div
+                  className="p-6 md:p-8"
+                  style={{
+                    background:
+                      "color-mix(in srgb, var(--user-bg-alt) 50%, transparent)",
+                    border: "1px solid var(--user-border)",
+                  }}
+                >
+                  <h2
+                    className="font-serif font-light text-xl mb-5"
+                    style={{ color: "var(--user-text)" }}
+                  >
                     Detail Pesanan
                   </h2>
 
@@ -329,25 +425,35 @@ export default function CheckoutForm({
                   ].map((item) => (
                     <div
                       key={item.label}
-                      className="flex justify-between py-3 border-b border-stone-100"
+                      className="flex justify-between py-3"
+                      style={{ borderBottom: "1px solid var(--user-border)" }}
                     >
-                      <span className="font-sans text-[10px] tracking-[0.15em] uppercase text-stone-400">
+                      <span
+                        className="font-sans text-[10px] tracking-[0.15em] uppercase"
+                        style={{ color: "var(--user-text-muted)" }}
+                      >
                         {item.label}
                       </span>
-                      <span className="font-sans text-sm text-stone-700">
+                      <span
+                        className="font-sans text-sm"
+                        style={{ color: "var(--user-text-secondary)" }}
+                      >
                         {item.value}
                       </span>
                     </div>
                   ))}
 
                   {/* Pilih ukuran kalau belum */}
-                  {!selectedSize && dress.sizes?.length > 0 && (
+                  {!selectedSize && dress.sizes && dress.sizes.length > 0 && (
                     <div className="mt-4">
-                      <p className="font-sans text-[10px] tracking-[0.15em] uppercase text-stone-400 mb-3">
+                      <p
+                        className="font-sans text-[10px] tracking-[0.15em] uppercase mb-3"
+                        style={{ color: "var(--user-text-muted)" }}
+                      >
                         Pilih Ukuran
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {dress.sizes.map((size) => (
+                        {dress.sizes.map((size: DressSize) => (
                           <button
                             key={size.id}
                             onClick={() => setSelectedSize(size)}
@@ -355,16 +461,16 @@ export default function CheckoutForm({
                             style={{
                               borderColor:
                                 selectedSize?.id === size.id
-                                  ? "#1c1917"
-                                  : "#d6d3d1",
+                                  ? "var(--user-text)"
+                                  : "var(--user-border)",
                               background:
                                 selectedSize?.id === size.id
-                                  ? "#1c1917"
+                                  ? "var(--user-text)"
                                   : "transparent",
                               color:
                                 selectedSize?.id === size.id
-                                  ? "#f0ebe3"
-                                  : "#78716c",
+                                  ? "var(--user-bg)"
+                                  : "var(--user-text-secondary)",
                             }}
                           >
                             {size.label}
@@ -376,7 +482,10 @@ export default function CheckoutForm({
 
                   {/* Catatan */}
                   <div className="mt-5">
-                    <label className="block font-sans text-[10px] tracking-[0.15em] uppercase text-stone-400 mb-2">
+                    <label
+                      className="block font-sans text-[10px] tracking-[0.15em] uppercase mb-2"
+                      style={{ color: "var(--user-text-muted)" }}
+                    >
                       Catatan (opsional)
                     </label>
                     <textarea
@@ -384,7 +493,11 @@ export default function CheckoutForm({
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
                       placeholder="Permintaan khusus, ukuran custom, dll..."
-                      className="w-full bg-transparent border border-stone-200 p-3 font-sans text-sm text-stone-700 placeholder:text-stone-300 outline-none focus:border-stone-400 transition-colors resize-none"
+                      className="w-full bg-transparent p-3 font-sans text-sm outline-none transition-colors resize-none"
+                      style={{
+                        border: "1px solid var(--user-border)",
+                        color: "var(--user-text-secondary)",
+                      }}
                     />
                   </div>
                 </div>
@@ -393,7 +506,11 @@ export default function CheckoutForm({
                 <div className="flex gap-3">
                   <button
                     onClick={() => setStep(1)}
-                    className="flex-1 py-3 font-sans text-[10px] tracking-[0.2em] uppercase border border-stone-300 text-stone-500 hover:border-stone-500 hover:text-stone-700 transition-all duration-200"
+                    className="flex-1 py-3 font-sans text-[10px] tracking-[0.2em] uppercase transition-all duration-200"
+                    style={{
+                      border: "1px solid var(--user-border)",
+                      color: "var(--user-text-secondary)",
+                    }}
                   >
                     ← Ubah Tanggal
                   </button>
@@ -402,8 +519,12 @@ export default function CheckoutForm({
                     disabled={loading}
                     className="flex-1 py-3 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
                     style={{
-                      background: loading ? "#e7e5e4" : "#1c1917",
-                      color: loading ? "#a8a29e" : "#f0ebe3",
+                      background: loading
+                        ? "var(--user-border)"
+                        : "var(--user-text)",
+                      color: loading
+                        ? "var(--user-text-muted)"
+                        : "var(--user-bg)",
                       cursor: loading ? "not-allowed" : "pointer",
                     }}
                   >
@@ -422,7 +543,14 @@ export default function CheckoutForm({
 
           {/* ── Kanan: Ringkasan Dress ── */}
           <div className="lg:col-span-2">
-            <div className="sticky top-24 bg-white/50 border border-stone-200/60 p-6">
+            <div
+              className="sticky top-24 p-6"
+              style={{
+                background:
+                  "color-mix(in srgb, var(--user-bg-alt) 50%, transparent)",
+                border: "1px solid var(--user-border)",
+              }}
+            >
               {/* Foto dress */}
               <div
                 className="relative overflow-hidden mb-5"
@@ -431,13 +559,19 @@ export default function CheckoutForm({
                 {thumb ? (
                   <Image
                     src={`${IMG_BASE}${thumb.url}`}
-                    alt="{dress.name}"
+                    alt={dress.name}
                     fill
-                    className="w-full h-full object-cover object-top"
+                    className="object-cover object-top"
                   />
                 ) : (
-                  <div className="w-full h-full bg-[#e8e0d5] flex items-center justify-center">
-                    <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400">
+                  <div
+                    className="w-full h-full flex items-center justify-center"
+                    style={{ background: "var(--user-border)" }}
+                  >
+                    <span
+                      className="font-sans text-[9px] tracking-widest uppercase"
+                      style={{ color: "var(--user-text-muted)" }}
+                    >
                       No photo
                     </span>
                   </div>
@@ -445,41 +579,74 @@ export default function CheckoutForm({
               </div>
 
               {/* Info dress */}
-              <p className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 mb-1">
+              <p
+                className="font-sans text-[9px] tracking-[0.2em] uppercase mb-1"
+                style={{ color: "var(--user-text-muted)" }}
+              >
                 {dress.category?.name}
               </p>
-              <h3 className="font-serif font-light text-stone-800 text-lg leading-tight mb-4">
+              <h3
+                className="font-serif font-light text-lg leading-tight mb-4"
+                style={{ color: "var(--user-text)" }}
+              >
                 {dress.name}
               </h3>
 
-              <div className="space-y-0 border-t border-stone-100 pt-4">
+              <div
+                className="space-y-0 pt-4"
+                style={{ borderTop: "1px solid var(--user-border)" }}
+              >
                 <div className="flex justify-between py-2">
-                  <span className="font-sans text-[10px] tracking-widest uppercase text-stone-400">
+                  <span
+                    className="font-sans text-[10px] tracking-widest uppercase"
+                    style={{ color: "var(--user-text-muted)" }}
+                  >
                     Harga / hari
                   </span>
-                  <span className="font-sans text-sm text-stone-600">
+                  <span
+                    className="font-sans text-sm"
+                    style={{ color: "var(--user-text-secondary)" }}
+                  >
                     {formatPrice(dress.pricePerDay)}
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="font-sans text-[10px] tracking-widest uppercase text-stone-400">
+                  <span
+                    className="font-sans text-[10px] tracking-widest uppercase"
+                    style={{ color: "var(--user-text-muted)" }}
+                  >
                     Durasi
                   </span>
-                  <span className="font-sans text-sm text-stone-600">
+                  <span
+                    className="font-sans text-sm"
+                    style={{ color: "var(--user-text-secondary)" }}
+                  >
                     {totalDays > 0 ? `${totalDays} hari` : "—"}
                   </span>
                 </div>
-                <div className="flex justify-between py-3 border-t border-stone-200 mt-2">
-                  <span className="font-sans text-[10px] tracking-widest uppercase text-stone-600 font-[500]">
+                <div
+                  className="flex justify-between py-3 mt-2"
+                  style={{ borderTop: "1px solid var(--user-border)" }}
+                >
+                  <span
+                    className="font-sans text-[10px] tracking-widest uppercase font-medium"
+                    style={{ color: "var(--user-text-secondary)" }}
+                  >
                     Total
                   </span>
-                  <span className="font-serif font-light text-stone-800 text-lg">
+                  <span
+                    className="font-serif font-light text-lg"
+                    style={{ color: "var(--user-text)" }}
+                  >
                     {totalDays > 0 ? formatPrice(totalPrice) : "—"}
                   </span>
                 </div>
               </div>
 
-              <p className="font-sans text-[9px] text-stone-400 mt-4 leading-relaxed">
+              <p
+                className="font-sans text-[9px] mt-4 leading-relaxed"
+                style={{ color: "var(--user-text-muted)" }}
+              >
                 Pembayaran dilakukan setelah pesanan dikonfirmasi oleh admin.
               </p>
             </div>
