@@ -8,6 +8,7 @@ import { getToken } from "@/lib/auth";
 import DateRangePicker, {
   DateRange,
 } from "@/components/public/DateRangePicker";
+import Image from "next/image";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
@@ -199,7 +200,7 @@ export default function CheckoutForm({
           Pemesanan
         </p>
         <h1
-          className="font-serif font-[300] text-stone-800"
+          className="font-serif font-light text-stone-800"
           style={{ fontSize: "clamp(1.8rem, 4vw, 2.8rem)" }}
         >
           Konfirmasi <em className="italic">Pesanan</em>
@@ -234,7 +235,7 @@ export default function CheckoutForm({
                       {s.label}
                     </span>
                   </div>
-                  {i < 1 && <div className="w-8 h-[1px] bg-stone-300" />}
+                  {i < 1 && <div className="w-8 h-px bg-stone-300" />}
                 </div>
               ))}
             </div>
@@ -242,7 +243,7 @@ export default function CheckoutForm({
             {/* ── Step 1: Pilih tanggal ── */}
             {step === 1 && (
               <div className="bg-white/50 border border-stone-200/60 p-6 md:p-8">
-                <h2 className="font-serif font-[300] text-stone-800 text-xl mb-1">
+                <h2 className="font-serif font-light text-stone-800 text-xl mb-1">
                   Pilih Tanggal Sewa
                 </h2>
                 <p className="font-sans text-[11px] text-stone-400 mb-6">
@@ -275,7 +276,7 @@ export default function CheckoutForm({
                         <p className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 mb-1">
                           Durasi
                         </p>
-                        <p className="font-serif font-[300] text-stone-800 text-lg">
+                        <p className="font-serif font-light text-stone-800 text-lg">
                           {totalDays} hari
                         </p>
                       </div>
@@ -307,7 +308,7 @@ export default function CheckoutForm({
             {step === 2 && (
               <div className="space-y-5">
                 <div className="bg-white/50 border border-stone-200/60 p-6 md:p-8">
-                  <h2 className="font-serif font-[300] text-stone-800 text-xl mb-5">
+                  <h2 className="font-serif font-light text-stone-800 text-xl mb-5">
                     Detail Pesanan
                   </h2>
 
@@ -350,7 +351,7 @@ export default function CheckoutForm({
                           <button
                             key={size.id}
                             onClick={() => setSelectedSize(size)}
-                            className="font-sans text-[10px] tracking-[0.1em] uppercase px-4 py-2 border transition-all duration-200"
+                            className="font-sans text-[10px] tracking-widest uppercase px-4 py-2 border transition-all duration-200"
                             style={{
                               borderColor:
                                 selectedSize?.id === size.id
@@ -428,9 +429,10 @@ export default function CheckoutForm({
                 style={{ aspectRatio: "3/4" }}
               >
                 {thumb ? (
-                  <img
+                  <Image
                     src={`${IMG_BASE}${thumb.url}`}
-                    alt={dress.name}
+                    alt="{dress.name}"
+                    fill
                     className="w-full h-full object-cover object-top"
                   />
                 ) : (
@@ -446,13 +448,13 @@ export default function CheckoutForm({
               <p className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 mb-1">
                 {dress.category?.name}
               </p>
-              <h3 className="font-serif font-[300] text-stone-800 text-lg leading-tight mb-4">
+              <h3 className="font-serif font-light text-stone-800 text-lg leading-tight mb-4">
                 {dress.name}
               </h3>
 
               <div className="space-y-0 border-t border-stone-100 pt-4">
                 <div className="flex justify-between py-2">
-                  <span className="font-sans text-[10px] tracking-[0.1em] uppercase text-stone-400">
+                  <span className="font-sans text-[10px] tracking-widest uppercase text-stone-400">
                     Harga / hari
                   </span>
                   <span className="font-sans text-sm text-stone-600">
@@ -460,7 +462,7 @@ export default function CheckoutForm({
                   </span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="font-sans text-[10px] tracking-[0.1em] uppercase text-stone-400">
+                  <span className="font-sans text-[10px] tracking-widest uppercase text-stone-400">
                     Durasi
                   </span>
                   <span className="font-sans text-sm text-stone-600">
@@ -468,10 +470,10 @@ export default function CheckoutForm({
                   </span>
                 </div>
                 <div className="flex justify-between py-3 border-t border-stone-200 mt-2">
-                  <span className="font-sans text-[10px] tracking-[0.1em] uppercase text-stone-600 font-[500]">
+                  <span className="font-sans text-[10px] tracking-widest uppercase text-stone-600 font-[500]">
                     Total
                   </span>
-                  <span className="font-serif font-[300] text-stone-800 text-lg">
+                  <span className="font-serif font-light text-stone-800 text-lg">
                     {totalDays > 0 ? formatPrice(totalPrice) : "—"}
                   </span>
                 </div>
