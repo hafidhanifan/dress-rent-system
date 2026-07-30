@@ -102,25 +102,46 @@ export default function DressDetail({ dress }: { dress: Dress }) {
   const st = statusLabel[dress.status];
 
   return (
-    <div className="min-h-screen bg-[#f0ebe3]">
+    <div className="min-h-screen" style={{ background: "var(--user-bg)" }}>
       {/* Breadcrumb */}
       <div className="pt-24 pb-4 px-6 md:px-10 max-w-7xl mx-auto">
         <div className="flex items-center gap-2">
           <Link
             href="/"
-            className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 hover:text-stone-600 transition-colors"
+            className="font-sans text-[9px] tracking-[0.2em] uppercase transition-colors"
+            style={{ color: "var(--user-text-muted)" }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-secondary)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-muted)")
+            }
           >
             Home
           </Link>
-          <span className="text-stone-300 text-xs">/</span>
+          <span className="text-xs" style={{ color: "var(--user-text-faint)" }}>
+            /
+          </span>
           <Link
             href="/dresses"
-            className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 hover:text-stone-600 transition-colors"
+            className="font-sans text-[9px] tracking-[0.2em] uppercase transition-colors"
+            style={{ color: "var(--user-text-muted)" }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-secondary)")
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.color = "var(--user-text-muted)")
+            }
           >
             Dresses
           </Link>
-          <span className="text-stone-300 text-xs">/</span>
-          <span className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-600 truncate max-w-40">
+          <span className="text-xs" style={{ color: "var(--user-text-faint)" }}>
+            /
+          </span>
+          <span
+            className="font-sans text-[9px] tracking-[0.2em] uppercase truncate max-w-40"
+            style={{ color: "var(--user-text-secondary)" }}
+          >
             {dress.name}
           </span>
         </div>
@@ -191,7 +212,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   fill={wishlisted ? "#e57373" : "none"}
-                  stroke={wishlisted ? "#e57373" : "#78716c"}
+                  stroke={wishlisted ? "#e57373" : "var(--user-text-secondary)"}
                 >
                   <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                 </svg>
@@ -210,7 +231,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                       width: 72,
                       height: 96,
                       position: "relative",
-                      border: `2px solid ${activePhoto?.id === photo.id ? "#1c1917" : "transparent"}`,
+                      border: `2px solid ${activePhoto?.id === photo.id ? "var(--user-text)" : "transparent"}`,
                       opacity: activePhoto?.id === photo.id ? 1 : 0.55,
                     }}
                   >
@@ -229,14 +250,20 @@ export default function DressDetail({ dress }: { dress: Dress }) {
           {/* ── Kanan: Info Dress ── */}
           <div className="flex flex-col">
             {/* Kategori */}
-            <p className="font-sans text-[9px] tracking-[0.3em] uppercase text-stone-400 mb-3">
+            <p
+              className="font-sans text-[9px] tracking-[0.3em] uppercase mb-3"
+              style={{ color: "var(--user-text-muted)" }}
+            >
               {dress.category?.name}
             </p>
 
             {/* Nama */}
             <h1
-              className="font-serif font-light text-stone-800 leading-tight mb-4"
-              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
+              className="font-serif font-light leading-tight mb-4"
+              style={{
+                fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)",
+                color: "var(--user-text)",
+              }}
             >
               {dress.name}
             </h1>
@@ -244,45 +271,66 @@ export default function DressDetail({ dress }: { dress: Dress }) {
             {/* Harga */}
             <div className="flex items-baseline gap-2 mb-2">
               <span
-                className="font-serif font-light text-stone-800"
-                style={{ fontSize: "clamp(1.4rem, 2.5vw, 1.8rem)" }}
+                className="font-serif font-light"
+                style={{
+                  fontSize: "clamp(1.4rem, 2.5vw, 1.8rem)",
+                  color: "var(--user-text)",
+                }}
               >
                 {formatPrice(dress.pricePerDay)}
               </span>
-              <span className="font-sans text-[10px] tracking-widest uppercase text-stone-400">
+              <span
+                className="font-sans text-[10px] tracking-widest uppercase"
+                style={{ color: "var(--user-text-muted)" }}
+              >
                 / hari
               </span>
             </div>
             {dress.minRentalDays > 1 && (
-              <p className="font-sans text-[10px] text-stone-400 mb-6">
+              <p
+                className="font-sans text-[10px] mb-6"
+                style={{ color: "var(--user-text-muted)" }}
+              >
                 Minimal sewa{" "}
-                <span className="text-stone-600">
+                <span style={{ color: "var(--user-text-secondary)" }}>
                   {dress.minRentalDays} hari
                 </span>
               </p>
             )}
 
             {/* Garis pemisah */}
-            <div className="w-full h-px bg-stone-200 my-6" />
+            <div
+              className="w-full h-px my-6"
+              style={{ background: "var(--user-border)" }}
+            />
 
             {/* Deskripsi */}
             {dress.description && (
-              <p className="font-sans font-light text-stone-500 text-sm leading-relaxed mb-8">
+              <p
+                className="font-sans font-light text-sm leading-relaxed mb-8"
+                style={{ color: "var(--user-text-secondary)" }}
+              >
                 {dress.description}
               </p>
             )}
 
             {/* Tab: Ukuran / Detail */}
             <div className="mb-6">
-              <div className="flex border-b border-stone-200 mb-5">
+              <div
+                className="flex mb-5"
+                style={{ borderBottom: "1px solid var(--user-border)" }}
+              >
                 {(["ukuran", "detail"] as const).map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
                     className="font-sans text-[9px] tracking-[0.2em] uppercase px-0 py-2 mr-6 transition-colors duration-200"
                     style={{
-                      color: activeTab === tab ? "#1c1917" : "#a8a29e",
-                      borderBottom: `1px solid ${activeTab === tab ? "#1c1917" : "transparent"}`,
+                      color:
+                        activeTab === tab
+                          ? "var(--user-text)"
+                          : "var(--user-text-muted)",
+                      borderBottom: `1px solid ${activeTab === tab ? "var(--user-text)" : "transparent"}`,
                       marginBottom: -1,
                     }}
                   >
@@ -296,7 +344,10 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                 <div>
                   {dress.sizes?.length > 0 ? (
                     <>
-                      <p className="font-sans text-[9px] tracking-[0.15em] uppercase text-stone-400 mb-3">
+                      <p
+                        className="font-sans text-[9px] tracking-[0.15em] uppercase mb-3"
+                        style={{ color: "var(--user-text-muted)" }}
+                      >
                         Pilih ukuran
                       </p>
                       <div className="flex flex-wrap gap-2 mb-5">
@@ -309,16 +360,16 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                             style={{
                               borderColor:
                                 selectedSize?.id === size.id
-                                  ? "#1c1917"
-                                  : "#d6d3d1",
+                                  ? "var(--user-text)"
+                                  : "var(--user-border)",
                               background:
                                 selectedSize?.id === size.id
-                                  ? "#1c1917"
+                                  ? "var(--user-text)"
                                   : "transparent",
                               color:
                                 selectedSize?.id === size.id
-                                  ? "#f0ebe3"
-                                  : "#78716c",
+                                  ? "var(--user-bg)"
+                                  : "var(--user-text-secondary)",
                             }}
                           >
                             {size.label}
@@ -328,8 +379,17 @@ export default function DressDetail({ dress }: { dress: Dress }) {
 
                       {/* Tabel detail ukuran */}
                       {selectedSize && (
-                        <div className="bg-stone-100/60 border border-stone-200 p-4">
-                          <p className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400 mb-3">
+                        <div
+                          style={{
+                            background: "var(--user-bg-alt)",
+                            border: "1px solid var(--user-border)",
+                          }}
+                          className="p-4"
+                        >
+                          <p
+                            className="font-sans text-[9px] tracking-[0.2em] uppercase mb-3"
+                            style={{ color: "var(--user-text-muted)" }}
+                          >
                             Ukuran {selectedSize.label}
                           </p>
                           <div className="grid grid-cols-2 gap-x-8 gap-y-2">
@@ -364,12 +424,26 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                                 item.value !== null && (
                                   <div
                                     key={item.label}
-                                    className="flex justify-between items-center py-1 border-b border-stone-200/60"
+                                    className="flex justify-between items-center py-1"
+                                    style={{
+                                      borderBottom:
+                                        "1px solid var(--user-border)",
+                                    }}
                                   >
-                                    <span className="font-sans text-[9px] tracking-widest uppercase text-stone-400">
+                                    <span
+                                      className="font-sans text-[9px] tracking-widest uppercase"
+                                      style={{
+                                        color: "var(--user-text-muted)",
+                                      }}
+                                    >
                                       {item.label}
                                     </span>
-                                    <span className="font-sans text-xs text-stone-600">
+                                    <span
+                                      className="font-sans text-xs"
+                                      style={{
+                                        color: "var(--user-text-secondary)",
+                                      }}
+                                    >
                                       {item.value} {item.unit}
                                     </span>
                                   </div>
@@ -380,7 +454,10 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                       )}
                     </>
                   ) : (
-                    <p className="font-sans text-sm text-stone-400">
+                    <p
+                      className="font-sans text-sm"
+                      style={{ color: "var(--user-text-muted)" }}
+                    >
                       Informasi ukuran belum tersedia
                     </p>
                   )}
@@ -404,12 +481,21 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                       item.value && (
                         <div
                           key={item.label}
-                          className="flex justify-between items-center py-3 border-b border-stone-200/60"
+                          className="flex justify-between items-center py-3"
+                          style={{
+                            borderBottom: "1px solid var(--user-border)",
+                          }}
                         >
-                          <span className="font-sans text-[9px] tracking-[0.2em] uppercase text-stone-400">
+                          <span
+                            className="font-sans text-[9px] tracking-[0.2em] uppercase"
+                            style={{ color: "var(--user-text-muted)" }}
+                          >
                             {item.label}
                           </span>
-                          <span className="font-sans text-xs text-stone-600">
+                          <span
+                            className="font-sans text-xs"
+                            style={{ color: "var(--user-text-secondary)" }}
+                          >
                             {item.value}
                           </span>
                         </div>
@@ -425,7 +511,15 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                 <>
                   <button
                     onClick={handleOrder}
-                    className="w-full py-4 font-sans text-[10px] tracking-[0.3em] uppercase bg-stone-800 text-stone-100 hover:bg-stone-900 transition-colors duration-300"
+                    className="w-full py-4 font-sans text-[10px] tracking-[0.3em] uppercase transition-colors duration-300"
+                    style={{
+                      background: "var(--user-text)",
+                      color: "var(--user-bg)",
+                    }}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.opacity = "0.85")
+                    }
+                    onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
                   >
                     Pesan Sekarang
                   </button>
@@ -433,8 +527,12 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                     onClick={handleWishlist}
                     className="w-full py-3 font-sans text-[10px] tracking-[0.3em] uppercase border transition-all duration-300 flex items-center justify-center gap-2"
                     style={{
-                      borderColor: wishlisted ? "#e57373" : "#d6d3d1",
-                      color: wishlisted ? "#e57373" : "#78716c",
+                      borderColor: wishlisted
+                        ? "#e57373"
+                        : "var(--user-border)",
+                      color: wishlisted
+                        ? "#e57373"
+                        : "var(--user-text-secondary)",
                     }}
                   >
                     <svg
@@ -445,7 +543,9 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       fill={wishlisted ? "#e57373" : "none"}
-                      stroke={wishlisted ? "#e57373" : "#78716c"}
+                      stroke={
+                        wishlisted ? "#e57373" : "var(--user-text-secondary)"
+                      }
                     >
                       <path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                     </svg>
@@ -455,14 +555,23 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                   </button>
                 </>
               ) : (
-                <div className="w-full py-4 font-sans text-[10px] tracking-[0.3em] uppercase bg-stone-100 text-stone-400 text-center cursor-not-allowed">
+                <div
+                  className="w-full py-4 font-sans text-[10px] tracking-[0.3em] uppercase text-center cursor-not-allowed"
+                  style={{
+                    background: "var(--user-bg-alt)",
+                    color: "var(--user-text-muted)",
+                  }}
+                >
                   {st.text}
                 </div>
               )}
             </div>
 
             {/* Info tambahan */}
-            <div className="mt-6 pt-6 border-t border-stone-200 flex flex-col gap-2">
+            <div
+              className="mt-6 pt-6 flex flex-col gap-2"
+              style={{ borderTop: "1px solid var(--user-border)" }}
+            >
               {[
                 {
                   icon: "M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 0 0-3.213-9.193 2.056 2.056 0 0 0-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 0 0-10.026 0 1.106 1.106 0 0 0-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12",
@@ -479,7 +588,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                     height="13"
                     fill="none"
                     viewBox="0 0 24 24"
-                    stroke="#a8a29e"
+                    stroke="var(--user-text-muted)"
                     strokeWidth={1.5}
                     className="shrink-0"
                   >
@@ -489,7 +598,10 @@ export default function DressDetail({ dress }: { dress: Dress }) {
                       d={item.icon}
                     />
                   </svg>
-                  <span className="font-sans text-[10px] text-stone-400">
+                  <span
+                    className="font-sans text-[10px]"
+                    style={{ color: "var(--user-text-muted)" }}
+                  >
                     {item.label}
                   </span>
                 </div>
