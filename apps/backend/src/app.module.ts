@@ -19,11 +19,14 @@ import { Order } from './order/order.entity';
 import { PaymentModule } from './payment/payment.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     // ConfigModule.forRoot() → baca file .env
     ConfigModule.forRoot({ isGlobal: true }),
+
+    ScheduleModule.forRoot(),
 
     // Serve foto secara statis dari folder public/
     ServeStaticModule.forRoot({

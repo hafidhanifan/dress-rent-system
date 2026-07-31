@@ -8,6 +8,7 @@ import { Repository } from 'typeorm';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { DressService } from '../dress/dress.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
 export class OrderService {
@@ -174,5 +175,29 @@ export class OrderService {
     });
     if (!order) throw new NotFoundException('Pesanan tidak ditemukan');
     return order;
+  }
+
+  /**
+   * Cron job — jalan setiap 10 menit
+   * Cancel order pending yang sudah lewat batas waktu pembayaran
+   */
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async cancelExpiredOrders() {
+    const now = new Date();
+
+    const result = await this.orderRepo
+      .createQueryBuilder()
+      .update(Order)
+      .set({ status: 'cancelled' })
+      .where('status = :status', { status: 'pending' })
+      .andWhere('expiresAt IS NOT NULL')
+      .andWhere('expiresAt < :now', { now })
+      .execute();
+
+    if (result.affected && result.affected > 0) {
+      console.log(
+        `🕐 ${result.affected} order pending kadaluarsa telah dibatalkan otomatis`,
+      );
+    }
   }
 }
