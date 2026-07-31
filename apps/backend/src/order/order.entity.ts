@@ -71,6 +71,10 @@ export class Order {
   @Column({ nullable: true })
   transactionId: string;
 
+  // Batas waktu pembayaran kalo lewat dan masih pending, otomatis cancel
+  @Column({ type: 'timestamp', nullable: true })
+  expiresAt: Date | null;
+
   /** Tanggal aktual dress dikembalikan — diisi manual oleh admin */
   @Column({ type: 'timestamp', nullable: true })
   returnedAt: Date | null;
