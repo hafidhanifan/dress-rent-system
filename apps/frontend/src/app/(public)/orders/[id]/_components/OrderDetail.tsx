@@ -17,6 +17,7 @@ type Order = {
   endDate: string;
   totalDays: number;
   totalPrice: number;
+  contactPhone: string;
   notes: string | null;
   status:
     | "pending"
@@ -63,7 +64,7 @@ const statusConfig = {
   },
   paid: {
     label: "Pembayaran Berhasil",
-    desc: "Pesanan sedang dikonfirmasi oleh admin",
+    desc: "Admin akan segera memeriksa dan mengonfirmasi pesanan Anda",
     color: "#4a7c5a",
     bg: "rgba(74,124,90,0.08)",
     border: "rgba(74,124,90,0.2)",
@@ -71,7 +72,7 @@ const statusConfig = {
   },
   confirmed: {
     label: "Pesanan Dikonfirmasi",
-    desc: "Dress sedang disiapkan untuk pengiriman",
+    desc: "Admin akan menghubungi Anda via WhatsApp untuk atur pengambilan/pengiriman",
     color: "#4a7c5a",
     bg: "rgba(74,124,90,0.08)",
     border: "rgba(74,124,90,0.2)",
@@ -258,6 +259,7 @@ export default function OrderDetail({
                   label: "Ukuran",
                   value: order.size?.label ?? "Tidak dipilih",
                 },
+                { label: "Nomor WhatsApp", value: order.contactPhone },
                 { label: "Tanggal Pesan", value: formatDate(order.createdAt) },
               ].map((item) => (
                 <div

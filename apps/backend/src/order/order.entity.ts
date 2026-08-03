@@ -75,6 +75,10 @@ export class Order {
   @Column({ type: 'timestamp', nullable: true })
   expiresAt: Date | null;
 
+  /** Nomor WhatsApp untuk dihubungi terkait pesanan ini (bisa beda dari nomor profil user) */
+  @Column()
+  contactPhone: string;
+
   /** Tanggal aktual dress dikembalikan — diisi manual oleh admin */
   @Column({ type: 'timestamp', nullable: true })
   returnedAt: Date | null;

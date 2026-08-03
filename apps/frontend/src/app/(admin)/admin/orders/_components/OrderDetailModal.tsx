@@ -21,6 +21,7 @@ export type AdminOrder = {
   totalPrice: number;
   notes: string | null;
   status: OrderStatus;
+  contactPhone: string;
   returnedAt: string | null;
   createdAt: string;
   user: { id: number; fullName: string; email: string; phone: string };
@@ -271,14 +272,49 @@ export default function OrderDetailModal({
               >
                 {order.user?.fullName}
               </p>
-              <p style={{ fontSize: 11, color: "var(--admin-text-muted)" }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--admin-text-muted)",
+                  marginBottom: 8,
+                }}
+              >
                 {order.user?.email}
               </p>
-              {order.user?.phone && (
-                <p style={{ fontSize: 11, color: "var(--admin-text-muted)" }}>
-                  {order.user.phone}
-                </p>
-              )}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 12, color: "var(--admin-text)" }}>
+                  {order.contactPhone}
+                </span>
+                <a
+                  href={`https://wa.me/${order.contactPhone.replace(/^0/, "62").replace(/\D/g, "")}?text=${encodeURIComponent(
+                    `Halo ${order.user?.fullName}, saya admin Naia Dress. Ingin konfirmasi pesanan #${String(order.id).padStart(5, "0")} untuk dress ${order.dress.name}.`,
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    fontSize: 10,
+                    padding: "3px 10px",
+                    borderRadius: 20,
+                    background: "rgba(74,124,90,0.1)",
+                    color: "#4a7c5a",
+                    border: "1px solid rgba(74,124,90,0.25)",
+                    textDecoration: "none",
+                  }}
+                >
+                  <svg
+                    width="11"
+                    height="11"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01C17.18 3.03 14.69 2 12.04 2zm0 18.15c-1.49 0-2.95-.4-4.23-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.13 8.13 0 0 1-1.25-4.32c0-4.5 3.66-8.16 8.16-8.16 2.18 0 4.23.85 5.77 2.39a8.1 8.1 0 0 1 2.39 5.77c0 4.5-3.66 8.18-8.15 8.18z" />
+                  </svg>
+                  Chat WA
+                </a>
+              </div>
             </div>
           </div>
 

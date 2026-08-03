@@ -2,13 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { getToken } from "@/lib/auth";
 import DateRangePicker, {
   DateRange,
 } from "@/components/public/DateRangePicker";
-import Image from "next/image";
+
+// ═══════════════════════════════════════════════════
+// Konstanta & tipe
+// ═══════════════════════════════════════════════════
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
@@ -64,6 +68,10 @@ declare global {
   }
 }
 
+// ═══════════════════════════════════════════════════
+// Helper functions
+// ═══════════════════════════════════════════════════
+
 const formatPrice = (n: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -71,16 +79,28 @@ const formatPrice = (n: number) =>
     maximumFractionDigits: 0,
   }).format(n);
 
-const formatDate = (d: Date) => {
-  return d.toLocaleDateString("id-ID", {
+const formatDate = (d: Date) =>
+  d.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
-};
 
 const toYMD = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+const validatePhone = (phone: string): string => {
+  const cleaned = phone.trim();
+  const regex = /^(\+62|62|0)8[1-9][0-9]{6,10}$/;
+  if (!cleaned) return "Nomor WhatsApp wajib diisi";
+  if (!regex.test(cleaned))
+    return "Format nomor tidak valid (contoh: 081234567890)";
+  return "";
+};
+
+// ═══════════════════════════════════════════════════
+// Komponen utama
+// ═══════════════════════════════════════════════════
 
 export default function CheckoutForm({
   dress,
@@ -90,7 +110,11 @@ export default function CheckoutForm({
   initialSize: DressSize | null;
 }) {
   const router = useRouter();
-  const { loggedIn, ready } = useAuth();
+
+  // ── Auth (harus di atas, sebelum dipakai state lain) ──
+  const { user, loggedIn, ready } = useAuth();
+
+  // ── State ──
   const [selectedSize, setSelectedSize] = useState<DressSize | null>(
     initialSize,
   );
@@ -99,13 +123,23 @@ export default function CheckoutForm({
     endDate: null,
   });
   const [notes, setNotes] = useState("");
+  const [contactPhone, setContactPhone] = useState(user?.phone ?? "");
+  const [phoneError, setPhoneError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState<1 | 2>(1); // 1=tanggal, 2=ringkasan
+  const [step, setStep] = useState<1 | 2>(1); // 1 = pilih tanggal, 2 = ringkasan
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
 
   const thumb = dress.photos?.find((p) => p.isThumbnail) ?? dress.photos?.[0];
 
-  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  // ── Effects ──
+
+  // Auto-fill nomor WA dari profil user begitu data siap
+  useEffect(() => {
+    if (user?.phone && !contactPhone) {
+      setContactPhone(user.phone);
+    }
+  }, [user]);
 
   // Redirect ke login kalau belum login
   useEffect(() => {
@@ -116,6 +150,7 @@ export default function CheckoutForm({
     }
   }, [ready, loggedIn, dress.id, initialSize, router]);
 
+  // ── Nilai turunan ──
   const totalDays =
     dateRange.startDate && dateRange.endDate
       ? Math.ceil(
@@ -131,20 +166,30 @@ export default function CheckoutForm({
     dateRange.endDate &&
     totalDays >= dress.minRentalDays;
 
+  const needsSize = dress.sizes.length > 0 && !selectedSize;
+
+  // ── Handler submit ──
   const handleSubmit = async () => {
     if (!canProceed) return;
-    // Wajib pilih ukuran kalau dress ini punya ukuran
-    if (dress.sizes.length > 0 && !selectedSize) {
+
+    if (needsSize) {
       setError("Silakan pilih ukuran terlebih dahulu");
       return;
     }
+
+    const phoneErr = validatePhone(contactPhone);
+    if (phoneErr) {
+      setPhoneError(phoneErr);
+      return;
+    }
+
     setLoading(true);
     setError("");
 
     try {
       let orderId = createdOrderId;
 
-      // Cuma bikin order baru kalau BELUM pernah dibuat di sesi checkout ini
+      // Cuma bikin order baru kalau belum pernah dibuat di sesi checkout ini
       if (!orderId) {
         const orderRes = await fetch(`${API}/orders`, {
           method: "POST",
@@ -158,6 +203,7 @@ export default function CheckoutForm({
             startDate: toYMD(dateRange.startDate!),
             endDate: toYMD(dateRange.endDate!),
             notes: notes || undefined,
+            contactPhone,
           }),
         });
 
@@ -204,10 +250,8 @@ export default function CheckoutForm({
           setLoading(false);
         },
         onClose: () => {
-          // Tidak clear createdOrderId -> klik "Buat Pesanan" berikutnya
-          // akan reuse order yang sama, bukan bikin baru
-          // User tutup popup tanpa bayar -> langsung arahkan ke halaman
-          // order detail, biar dia yang jadi "pusat kontrol" pesanan ini
+          // User tutup popup tanpa bayar -> arahkan ke halaman order detail,
+          // biar halaman itu jadi "pusat kontrol" pesanan ini
           router.push(`/orders/${orderId}`);
         },
       });
@@ -219,11 +263,13 @@ export default function CheckoutForm({
 
   if (!ready) return null;
 
-  const needsSize = dress.sizes.length > 0 && !selectedSize;
+  // ═══════════════════════════════════════════════════
+  // Render
+  // ═══════════════════════════════════════════════════
 
   return (
     <div className="min-h-screen" style={{ background: "var(--user-bg)" }}>
-      {/* Header */}
+      {/* ── Header ── */}
       <div className="pt-24 pb-8 px-6 md:px-10 max-w-6xl mx-auto">
         <div className="flex items-center gap-2 mb-6">
           <Link
@@ -259,7 +305,7 @@ export default function CheckoutForm({
 
       <div className="max-w-6xl mx-auto px-6 md:px-10 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
-          {/* ── Kiri: Form ── */}
+          {/* ══════════════ Kiri: Form ══════════════ */}
           <div className="lg:col-span-3 space-y-8">
             {/* Step indicator */}
             <div className="flex items-center gap-3">
@@ -338,7 +384,6 @@ export default function CheckoutForm({
                   minRentalDays={dress.minRentalDays}
                 />
 
-                {/* Tampilkan ringkasan tanggal yang dipilih */}
                 {dateRange.startDate && dateRange.endDate && (
                   <div
                     className="mt-6 p-4"
@@ -515,6 +560,45 @@ export default function CheckoutForm({
                       }}
                     />
                   </div>
+
+                  {/* Nomor WhatsApp */}
+                  <div className="mt-5">
+                    <label
+                      className="block font-sans text-[10px] tracking-[0.15em] uppercase mb-2"
+                      style={{ color: "var(--user-text-muted)" }}
+                    >
+                      Nomor WhatsApp *
+                    </label>
+                    <input
+                      type="tel"
+                      value={contactPhone}
+                      onChange={(e) => {
+                        setContactPhone(e.target.value);
+                        if (phoneError) setPhoneError("");
+                      }}
+                      placeholder="081234567890"
+                      className="w-full bg-transparent p-3 font-sans text-sm outline-none transition-colors"
+                      style={{
+                        border: `1px solid ${phoneError ? "#f87171" : "var(--user-border)"}`,
+                        color: "var(--user-text-secondary)",
+                      }}
+                    />
+                    {phoneError && (
+                      <p
+                        className="font-sans text-[10px] mt-1.5"
+                        style={{ color: "#f87171" }}
+                      >
+                        {phoneError}
+                      </p>
+                    )}
+                    <p
+                      className="font-sans text-[10px] mt-1.5"
+                      style={{ color: "var(--user-text-muted)" }}
+                    >
+                      Pastikan nomor aktif — admin akan menghubungi Anda untuk
+                      konfirmasi pengiriman
+                    </p>
+                  </div>
                 </div>
 
                 {/* Tombol navigasi */}
@@ -562,7 +646,7 @@ export default function CheckoutForm({
             )}
           </div>
 
-          {/* ── Kanan: Ringkasan Dress ── */}
+          {/* ══════════════ Kanan: Ringkasan Dress ══════════════ */}
           <div className="lg:col-span-2">
             <div
               className="sticky top-24 p-6"

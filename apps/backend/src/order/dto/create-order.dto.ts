@@ -4,6 +4,7 @@ import {
   IsDateString,
   IsOptional,
   IsString,
+  Matches,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
@@ -29,4 +30,10 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsNotEmpty({ message: 'Nomor WhatsApp wajib diisi' })
+  @Matches(/^(\+62|62|0)8[1-9][0-9]{6,10}$/, {
+    message: 'Format nomor WhatsApp tidak valid',
+  })
+  contactPhone: string;
 }

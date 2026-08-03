@@ -107,6 +107,7 @@ export class OrderService {
       notes: dto.notes,
       status: 'pending',
       expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 jam dari sekarang
+      contactPhone: dto.contactPhone,
     });
 
     return this.orderRepo.save(order);
