@@ -2,12 +2,13 @@
 
 // src/components/public/DressDetail.tsx
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import Image from "next/image";
+import { getToken } from "@/lib/auth";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
@@ -78,6 +79,35 @@ export default function DressDetail({ dress }: { dress: Dress }) {
     dress.sizes?.length === 1 ? dress.sizes[0] : null,
   );
   const [activeTab, setActiveTab] = useState<"ukuran" | "detail">("ukuran");
+  const [pendingOrder, setPendingOrder] = useState<{
+    id: number;
+    status: string;
+  } | null>(null);
+  const [checkingPending, setCheckingPending] = useState(true);
+
+  useEffect(() => {
+    const checkPending = async () => {
+      if (!loggedIn) {
+        setCheckingPending(false);
+        return;
+      }
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/orders/pending-check/${dress.id}`,
+          { headers: { Authorization: `Bearer ${getToken()}` } },
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setPendingOrder(data);
+        }
+      } catch {
+        // silent fail
+      } finally {
+        setCheckingPending(false);
+      }
+    };
+    checkPending();
+  }, [loggedIn, dress.id]);
 
   const handleWishlist = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -93,7 +123,12 @@ export default function DressDetail({ dress }: { dress: Dress }) {
       router.push(`/auth/login?redirect=/dresses/${dress.slug}`);
       return;
     }
-    // Nanti redirect ke halaman checkout dengan dressId dan selectedSize
+    // Kalau ada order pending untuk dress ini, arahkan ke situ
+    // alih-alih bikin order baru
+    if (pendingOrder) {
+      router.push(`/orders/${pendingOrder.id}`);
+      return;
+    }
     router.push(
       `/checkout?dressId=${dress.id}${selectedSize ? `&sizeId=${selectedSize.id}` : ""}`,
     );
@@ -509,6 +544,24 @@ export default function DressDetail({ dress }: { dress: Dress }) {
             <div className="flex flex-col gap-3 mt-auto pt-6">
               {dress.status === "available" ? (
                 <>
+                  {/* Peringatan kalau ada pending order */}
+                  {!checkingPending && pendingOrder && (
+                    <div
+                      className="mb-3 px-4 py-3 text-center"
+                      style={{
+                        background: "rgba(176,128,64,0.08)",
+                        border: "1px solid rgba(176,128,64,0.2)",
+                      }}
+                    >
+                      <p
+                        className="font-sans text-xs"
+                        style={{ color: "#b08040" }}
+                      >
+                        Kamu punya pesanan yang belum dibayar untuk dress ini
+                      </p>
+                    </div>
+                  )}
+
                   <button
                     onClick={handleOrder}
                     className="w-full py-4 font-sans text-[10px] tracking-[0.3em] uppercase transition-colors duration-300"

@@ -112,6 +112,25 @@ export class OrderService {
     return this.orderRepo.save(order);
   }
 
+  /**
+   * Cek apakah user sudah punya order pending untuk dress tertentu
+   * (dengan tanggal overlap terhadap tanggal yang mau dipesan lagi)
+   * Dipakai supaya user tidak bikin order duplikat
+   */
+  async findPendingOrderForDress(
+    userId: number,
+    dressId: number,
+  ): Promise<Order | null> {
+    return this.orderRepo.findOne({
+      where: {
+        userId,
+        dressId,
+        status: 'pending',
+      },
+      order: { createdAt: 'DESC' }, // ambil yang paling baru kalau ada beberapa
+    });
+  }
+
   /** Ambil semua pesanan milik user */
   async findByUser(userId: number): Promise<Order[]> {
     return this.orderRepo.find({

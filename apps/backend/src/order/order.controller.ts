@@ -29,6 +29,18 @@ export class OrderController {
   }
 
   /**
+   * GET /orders/pending-check/:dressId
+   * Cek apakah user (yang login) punya order pending untuk dress ini
+   */
+  @Get('pending-check/:dressId')
+  findPendingForDress(
+    @Req() req: any,
+    @Param('dressId', ParseIntPipe) dressId: number,
+  ) {
+    return this.orderService.findPendingOrderForDress(req.user.sub, dressId);
+  }
+
+  /**
    * GET /orders/admin/all — semua pesanan dari semua user, khusus admin
    * @UseGuards(AdminGuard) berjalan SETELAH JwtAuthGuard di atas
    * PENTING: harus di atas @Get(':id') supaya tidak konflik routing

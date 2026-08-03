@@ -105,6 +105,8 @@ export default function CheckoutForm({
 
   const thumb = dress.photos?.find((p) => p.isThumbnail) ?? dress.photos?.[0];
 
+  const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+
   // Redirect ke login kalau belum login
   useEffect(() => {
     if (ready && !loggedIn) {
@@ -135,31 +137,38 @@ export default function CheckoutForm({
     setError("");
 
     try {
-      // 1. Buat pesanan dulu
-      const orderRes = await fetch(`${API}/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`,
-        },
-        body: JSON.stringify({
-          dressId: dress.id,
-          sizeId: selectedSize?.id ?? null,
-          startDate: toYMD(dateRange.startDate!),
-          endDate: toYMD(dateRange.endDate!),
-          notes: notes || undefined,
-        }),
-      });
+      let orderId = createdOrderId;
 
-      const order = await orderRes.json();
-      if (!orderRes.ok) {
-        setError(order.message ?? "Gagal membuat pesanan");
-        setLoading(false);
-        return;
+      // Cuma bikin order baru kalau BELUM pernah dibuat di sesi checkout ini
+      if (!orderId) {
+        const orderRes = await fetch(`${API}/orders`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${getToken()}`,
+          },
+          body: JSON.stringify({
+            dressId: dress.id,
+            sizeId: selectedSize?.id ?? null,
+            startDate: toYMD(dateRange.startDate!),
+            endDate: toYMD(dateRange.endDate!),
+            notes: notes || undefined,
+          }),
+        });
+
+        const order = await orderRes.json();
+        if (!orderRes.ok) {
+          setError(order.message ?? "Gagal membuat pesanan");
+          setLoading(false);
+          return;
+        }
+
+        orderId = order.id;
+        setCreatedOrderId(orderId); // simpan supaya klik berikutnya reuse order ini
       }
 
-      // 2. Minta snap token dari backend
-      const snapRes = await fetch(`${API}/payment/snap-token/${order.id}`, {
+      // Minta snap token — baik untuk order baru maupun yang sudah ada
+      const snapRes = await fetch(`${API}/payment/snap-token/${orderId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
@@ -171,7 +180,6 @@ export default function CheckoutForm({
         return;
       }
 
-      // 3. Tampilkan popup Midtrans
       const snapWindow = window.snap;
       if (!snapWindow) {
         setError("Midtrans tidak tersedia, coba refresh halaman");
@@ -180,21 +188,19 @@ export default function CheckoutForm({
       }
 
       snapWindow.pay(snapData.snapToken, {
-        onSuccess: (result: unknown) => {
-          console.log("Pembayaran berhasil:", result);
-          router.push(`/orders/${order.id}?payment=finish`);
+        onSuccess: () => {
+          router.push(`/orders/${orderId}?payment=finish`);
         },
-        onPending: (result: unknown) => {
-          console.log("Menunggu pembayaran:", result);
-          router.push(`/orders/${order.id}?payment=pending`);
+        onPending: () => {
+          router.push(`/orders/${orderId}?payment=pending`);
         },
-        onError: (result: unknown) => {
-          console.log("Pembayaran gagal:", result);
+        onError: () => {
           setError("Pembayaran gagal, silakan coba lagi");
           setLoading(false);
         },
         onClose: () => {
-          // User tutup popup tanpa bayar
+          // Tidak clear createdOrderId -> klik "Buat Pesanan" berikutnya
+          // akan reuse order yang sama, bukan bikin baru
           setLoading(false);
         },
       });
