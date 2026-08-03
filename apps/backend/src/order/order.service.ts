@@ -184,6 +184,7 @@ export class OrderService {
   @Cron(CronExpression.EVERY_10_MINUTES)
   async cancelExpiredOrders() {
     const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
 
     const result = await this.orderRepo
       .createQueryBuilder()
@@ -191,7 +192,11 @@ export class OrderService {
       .set({ status: 'cancelled' })
       .where('status = :status', { status: 'pending' })
       .andWhere('expiresAt IS NOT NULL')
-      .andWhere('expiresAt < :now', { now })
+      .andWhere(
+        // Order baru: cek expiresAt. Order lama (expiresAt null): fallback ke createdAt
+        '(expiresAt IS NOT NULL AND expiresAt < :now) OR (expiresAt IS NULL AND createdAt < :oneHourAgo)',
+        { now, oneHourAgo },
+      )
       .execute();
 
     if (result.affected && result.affected > 0) {
