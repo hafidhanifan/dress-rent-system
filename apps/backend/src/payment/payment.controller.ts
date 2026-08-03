@@ -41,7 +41,14 @@ export class PaymentController {
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() notification: Record<string, string>) {
-    await this.paymentService.handleWebhook(notification);
+    try {
+      await this.paymentService.handleWebhook(notification);
+    } catch (err) {
+      // Tetap balas 200 OK ke Midtrans meski ada error internal —
+      // supaya test ping / retry Midtrans tidak dianggap gagal total.
+      // Error tetap dicatat di log server untuk didebug.
+      console.error('Webhook error:', err);
+    }
     return { status: 'ok' };
   }
 }
