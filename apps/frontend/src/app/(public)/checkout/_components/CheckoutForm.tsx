@@ -201,7 +201,9 @@ export default function CheckoutForm({
         onClose: () => {
           // Tidak clear createdOrderId -> klik "Buat Pesanan" berikutnya
           // akan reuse order yang sama, bukan bikin baru
-          setLoading(false);
+          // User tutup popup tanpa bayar -> langsung arahkan ke halaman
+          // order detail, biar dia yang jadi "pusat kontrol" pesanan ini
+          router.push(`/orders/${orderId}`);
         },
       });
     } catch {
