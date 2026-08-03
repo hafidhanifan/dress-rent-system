@@ -133,6 +133,11 @@ export default function CheckoutForm({
 
   const handleSubmit = async () => {
     if (!canProceed) return;
+    // Wajib pilih ukuran kalau dress ini punya ukuran
+    if (dress.sizes.length > 0 && !selectedSize) {
+      setError("Silakan pilih ukuran terlebih dahulu");
+      return;
+    }
     setLoading(true);
     setError("");
 
@@ -213,6 +218,8 @@ export default function CheckoutForm({
   };
 
   if (!ready) return null;
+
+  const needsSize = dress.sizes.length > 0 && !selectedSize;
 
   return (
     <div className="min-h-screen" style={{ background: "var(--user-bg)" }}>
@@ -524,19 +531,25 @@ export default function CheckoutForm({
                   </button>
                   <button
                     onClick={handleSubmit}
-                    disabled={loading}
+                    disabled={loading || needsSize}
                     className="flex-1 py-3 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
                     style={{
-                      background: loading
-                        ? "var(--user-border)"
-                        : "var(--user-text)",
-                      color: loading
-                        ? "var(--user-text-muted)"
-                        : "var(--user-bg)",
-                      cursor: loading ? "not-allowed" : "pointer",
+                      background:
+                        loading || needsSize
+                          ? "var(--user-border)"
+                          : "var(--user-text)",
+                      color:
+                        loading || needsSize
+                          ? "var(--user-text-muted)"
+                          : "var(--user-bg)",
+                      cursor: loading || needsSize ? "not-allowed" : "pointer",
                     }}
                   >
-                    {loading ? "Memproses..." : "Buat Pesanan"}
+                    {loading
+                      ? "Memproses..."
+                      : needsSize
+                        ? "Pilih Ukuran Dulu"
+                        : "Buat Pesanan"}
                   </button>
                 </div>
 
