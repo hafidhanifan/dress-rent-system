@@ -11,6 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirect") ?? "/";
+  const isExpired = searchParams.get("reason") === "expired";
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -209,6 +210,14 @@ export default function LoginPage() {
           {errors.server && (
             <div className="mb-6 px-4 py-3 border border-red-200 bg-red-50 rounded-sm">
               <p className="font-sans text-xs text-red-500">{errors.server}</p>
+            </div>
+          )}
+
+          {isExpired && (
+            <div className="mb-6 px-4 py-3 border border-amber-200 bg-amber-50 rounded-sm">
+              <p className="font-sans text-xs text-amber-600">
+                Sesi Anda telah berakhir, silakan login kembali
+              </p>
             </div>
           )}
 
