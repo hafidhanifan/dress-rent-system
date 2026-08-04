@@ -143,6 +143,7 @@ export default function RegisterPage() {
       router.push("/dashboard");
     } catch (err) {
       setServerError("Tidak dapat terhubung ke server. Coba lagi.");
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +157,7 @@ export default function RegisterPage() {
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-[#e6dfd6] flex-col items-center justify-center p-16">
         {/* Huruf dekoratif besar */}
         <span
-          className="absolute -bottom-8 -left-4 font-serif font-[300] text-[#d8d0c8] leading-none select-none pointer-events-none"
+          className="absolute -bottom-8 -left-4 font-serif font-light text-[#d8d0c8] leading-none select-none pointer-events-none"
           style={{ fontSize: "22rem" }}
         >
           N
@@ -167,31 +168,30 @@ export default function RegisterPage() {
           {/* Logo */}
           <Link
             href="/"
-            className="font-serif text-2xl font-[300] tracking-[0.25em] uppercase text-stone-700 block mb-16"
+            className="font-serif text-2xl font-light tracking-[0.25em] uppercase text-stone-700 block mb-16"
           >
             Naia Dress
           </Link>
 
           <h2
-            className="font-serif font-[300] text-stone-700 leading-[1.1] mb-6"
+            className="font-serif font-light text-stone-700 leading-[1.1] mb-6"
             style={{ fontSize: "clamp(2rem, 3vw, 2.8rem)" }}
           >
             Selamat datang <br />
             di <em className="italic">Naia Dress</em>
           </h2>
 
-          <p className="font-sans font-[300] text-stone-400 text-sm leading-relaxed max-w-xs mx-auto">
-            Daftar dan temukan ratusan pilihan dress untuk setiap momenmu — dari
-            pesta hingga pernikahan.
+          <p className="font-sans font-light text-stone-400 text-sm leading-relaxed max-w-xs mx-auto">
+            Daftar dan temukan berbagai pilihan dress untuk setiap momenmu
           </p>
 
           {/* Garis dekoratif */}
           <div className="flex items-center gap-3 mt-10 justify-center">
-            <div className="w-8 h-[1px] bg-stone-400" />
+            <div className="w-8 h-px bg-stone-400" />
             <span className="font-sans text-[9px] tracking-[0.3em] uppercase text-stone-400">
               Est. 2024
             </span>
-            <div className="w-8 h-[1px] bg-stone-400" />
+            <div className="w-8 h-px bg-stone-400" />
           </div>
         </div>
       </div>
@@ -203,7 +203,7 @@ export default function RegisterPage() {
         {/* Logo mobile — hanya muncul di mobile */}
         <Link
           href="/"
-          className="lg:hidden font-serif text-xl font-[300] tracking-[0.25em] uppercase text-stone-700 mb-10 block"
+          className="lg:hidden font-serif text-xl font-light tracking-[0.25em] uppercase text-stone-700 mb-10 block"
         >
           Naia Dress
         </Link>
@@ -215,7 +215,7 @@ export default function RegisterPage() {
               Buat Akun
             </p>
             <h1
-              className="font-serif font-[300] text-stone-800 leading-tight"
+              className="font-serif font-light text-stone-800 leading-tight"
               style={{ fontSize: "clamp(1.8rem, 3vw, 2.2rem)" }}
             >
               Daftar <em className="italic">sekarang</em>
