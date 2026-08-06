@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { getToken, saveAuth } from "@/lib/auth";
+import { apiFetch } from "@/lib/apiFetch";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -96,7 +97,7 @@ export default function ProfileForm() {
     setSaving(true);
     setErrors((p) => ({ ...p, server: undefined }));
     try {
-      const res = await fetch(`${API}/user/me`, {
+      const res = await apiFetch(`${API}/user/me`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -141,7 +142,7 @@ export default function ProfileForm() {
     setChangingPassword(true);
     setPasswordErrors((p) => ({ ...p, server: "" }));
     try {
-      const res = await fetch(`${API}/user/me/password`, {
+      const res = await apiFetch(`${API}/user/me/password`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
