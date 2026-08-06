@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
 import Image from "next/image";
 import { getToken } from "@/lib/auth";
+import { apiFetch } from "@/lib/apiFetch";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
 
@@ -92,7 +93,7 @@ export default function DressDetail({ dress }: { dress: Dress }) {
         return;
       }
       try {
-        const res = await fetch(
+        const res = await apiFetch(
           `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/orders/pending-check/${dress.id}`,
           { headers: { Authorization: `Bearer ${getToken()}` } },
         );

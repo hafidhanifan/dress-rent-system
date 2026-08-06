@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getToken, isLoggedIn } from "@/lib/auth";
+import { apiFetch } from "@/lib/apiFetch";}
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
@@ -20,7 +21,7 @@ export function useWishlist() {
   const fetchWishlistIds = useCallback(async () => {
     if (!isLoggedIn()) return;
     try {
-      const res = await fetch(`${API}/wishlist/ids`, {
+      const res = await apiFetch(`${API}/wishlist/ids`, {
         headers: { Authorization: `Bearer ${getToken()}` },
         cache: "no-store",
       });
@@ -52,7 +53,7 @@ export function useWishlist() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API}/wishlist/${dressId}`, {
+      const res = await apiFetch(`${API}/wishlist/${dressId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
