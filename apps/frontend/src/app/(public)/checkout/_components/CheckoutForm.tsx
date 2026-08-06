@@ -9,6 +9,7 @@ import { getToken } from "@/lib/auth";
 import DateRangePicker, {
   DateRange,
 } from "@/components/public/DateRangePicker";
+import { apiFetch } from "@/lib/apiFetch";
 
 // ═══════════════════════════════════════════════════
 // Konstanta & tipe
@@ -191,7 +192,7 @@ export default function CheckoutForm({
 
       // Cuma bikin order baru kalau belum pernah dibuat di sesi checkout ini
       if (!orderId) {
-        const orderRes = await fetch(`${API}/orders`, {
+        const orderRes = await apiFetch(`${API}/orders`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -219,7 +220,7 @@ export default function CheckoutForm({
       }
 
       // Minta snap token — baik untuk order baru maupun yang sudah ada
-      const snapRes = await fetch(`${API}/payment/snap-token/${orderId}`, {
+      const snapRes = await apiFetch(`${API}/payment/snap-token/${orderId}`, {
         method: "POST",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
