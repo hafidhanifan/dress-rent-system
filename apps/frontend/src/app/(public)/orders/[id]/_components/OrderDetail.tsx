@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { getToken } from "@/lib/auth";
+import { apiFetch } from "@/lib/apiFetch";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
@@ -130,7 +131,7 @@ export default function OrderDetail({
 
   const fetchOrder = async () => {
     try {
-      const res = await fetch(`${API}/orders/${orderId}`, {
+      const res = await apiFetch(`${API}/orders/${orderId}`, {
         headers: { Authorization: `Bearer ${getToken()}` },
         cache: "no-store",
       });
@@ -146,7 +147,7 @@ export default function OrderDetail({
     if (!confirm("Yakin ingin membatalkan pesanan ini?")) return;
     setCancelling(true);
     try {
-      const res = await fetch(`${API}/orders/${orderId}/cancel`, {
+      const res = await apiFetch(`${API}/orders/${orderId}/cancel`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${getToken()}` },
       });
