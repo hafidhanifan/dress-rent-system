@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { getToken, isLoggedIn } from "@/lib/auth";
-import { apiFetch } from "@/lib/apiFetch";}
+import { apiFetch } from "@/lib/apiFetch";
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
