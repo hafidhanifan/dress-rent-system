@@ -3,9 +3,6 @@
 import { useRef, useEffect } from "react";
 import Link from "next/link";
 
-// ─────────────────────────────────────────────────────────────
-// Data kolom footer — ganti href sesuai routing proyekmu
-// ─────────────────────────────────────────────────────────────
 const footerColumns = [
   {
     id: 1,
@@ -30,7 +27,6 @@ const footerColumns = [
   },
 ];
 
-// Navigasi kecil di bawah
 const bottomLinks = [
   { label: "Privacy Policy", href: "/privacy" },
   { label: "Terms of Service", href: "/terms" },
@@ -40,7 +36,6 @@ const bottomLinks = [
 export default function Footer() {
   const footerRef = useRef<HTMLElement>(null);
 
-  // ── Animasi scroll-in ──
   useEffect(() => {
     const footer = footerRef.current;
     if (!footer) return;
@@ -82,36 +77,28 @@ export default function Footer() {
   return (
     <footer
       ref={footerRef}
-      // Warna sedikit lebih gelap dari bg utama (#f0ebe3) → (#e6dfd6)
-      className="w-full bg-[#e6dfd6]"
+      className="w-full"
+      style={{ background: "var(--user-bg-alt)" }}
     >
-      {/* ══════════════════════════════════════
-          BAGIAN ATAS — Need Help + 3 kolom
-      ══════════════════════════════════════ */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-20 lg:py-24">
-        {/*
-          Grid layout:
-          - Mobile  : 1 kolom (stack semua)
-          - Tablet  : 2 kolom
-          - Desktop : 4 kolom (judul besar | 3 kolom konten)
-        */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8">
-          {/* ── Kolom 1: Judul besar "Need Help?" ── */}
           <div data-reveal data-delay="0.05" className="lg:pr-8">
             <h2
-              className="font-serif font-light text-stone-700 leading-[1.05]"
-              style={{ fontSize: "clamp(2.4rem, 4vw, 3.4rem)" }}
+              className="font-serif font-light leading-[1.05]"
+              style={{
+                fontSize: "clamp(2.4rem, 4vw, 3.4rem)",
+                color: "var(--user-text-secondary)",
+              }}
             >
               Need <br />
-              {/* Italic seperti referensi */}
               <em className="italic">Help?</em>
             </h2>
-
-            {/* Garis dekoratif bawah judul */}
-            <div className="w-10 h-px bg-stone-400 mt-5" />
+            <div
+              className="w-10 h-px mt-5"
+              style={{ background: "var(--user-text-muted)" }}
+            />
           </div>
 
-          {/* ── Kolom 2, 3, 4: konten footer ── */}
           {footerColumns.map((col, i) => (
             <div
               key={col.id}
@@ -119,81 +106,80 @@ export default function Footer() {
               data-delay={String(0.1 + i * 0.1)}
               className="flex flex-col"
             >
-              {/* Judul kolom */}
-              <p className="font-sans text-[11px] font-medium tracking-[0.15em] uppercase text-stone-600 mb-3">
+              <p
+                className="font-sans text-[11px] font-medium tracking-[0.15em] uppercase mb-3"
+                style={{ color: "var(--user-text-secondary)" }}
+              >
                 {col.heading}
               </p>
-
-              {/* Deskripsi */}
-              <p className="font-sans font-light text-stone-500 text-sm leading-relaxed mb-6 flex-1">
+              <p
+                className="font-sans font-light text-sm leading-relaxed mb-6 flex-1"
+                style={{ color: "var(--user-text-muted)" }}
+              >
                 {col.desc}
               </p>
 
-              {/* Link dengan garis bawah dekoratif — persis seperti referensi */}
               <div>
                 <Link
                   href={col.linkHref}
-                  className="
-                    group inline-flex items-center gap-2
-                    font-sans text-[10px] tracking-[0.25em] uppercase
-                    text-[#b08060] hover:text-stone-700
-                    transition-colors duration-300
-                  "
+                  className="group inline-flex items-center gap-2 font-sans text-[10px] tracking-[0.25em] uppercase transition-colors duration-300"
+                  style={{ color: "var(--user-accent-alt)" }}
                 >
-                  {/* Arrow kecil */}
-                  <span className="text-[#c09878] group-hover:text-stone-500 transition-colors">
+                  <span
+                    className="transition-colors"
+                    style={{ color: "var(--user-accent)" }}
+                  >
                     &rsaquo;
                   </span>
                   {col.linkLabel}
                 </Link>
-                {/* Garis oranye-nude di bawah link */}
-                <div className="w-10 h-px bg-[#c8a888] mt-2 group-hover:w-14 transition-all duration-300" />
+                <div
+                  className="w-10 h-px mt-2 group-hover:w-14 transition-all duration-300"
+                  style={{ background: "var(--user-accent)" }}
+                />
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ══════════════════════════════════════
-          GARIS PEMBATAS
-      ══════════════════════════════════════ */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-        <div className="w-full h-px bg-stone-300/60" />
+        <div
+          className="w-full h-px"
+          style={{ background: "var(--user-border)" }}
+        />
       </div>
 
-      {/* ══════════════════════════════════════
-          BAGIAN BAWAH — copyright + nav kecil
-      ══════════════════════════════════════ */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20 py-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Copyright + nama brand */}
           <div
             data-reveal
             data-delay="0.05"
             className="flex items-center gap-3"
           >
-            {/* Logo teks kecil */}
-            <span className="font-serif text-sm font-light tracking-[0.2em] uppercase text-stone-500">
+            <span
+              className="font-serif text-sm font-light tracking-[0.2em] uppercase"
+              style={{ color: "var(--user-text-secondary)" }}
+            >
               Naia Dress
             </span>
-            <span className="text-stone-300">·</span>
-            <span className="font-sans text-[10px] text-stone-400 tracking-wide">
+            <span style={{ color: "var(--user-text-faint)" }}>·</span>
+            <span
+              className="font-sans text-[10px] tracking-wide"
+              style={{ color: "var(--user-text-muted)" }}
+            >
               © {new Date().getFullYear()} All rights reserved
             </span>
           </div>
 
-          {/* Nav kecil: Privacy, Terms, Instagram */}
           <nav data-reveal data-delay="0.15">
             <ul className="flex items-center gap-5 md:gap-6">
               {bottomLinks.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="
-                      font-sans text-[10px] tracking-[0.15em] uppercase
-                      text-stone-400 hover:text-stone-600
-                      transition-colors duration-300
-                    "
+                    className="font-sans text-[10px] tracking-[0.15em] uppercase transition-colors duration-300"
+                    style={{ color: "var(--user-text-muted)" }}
                   >
                     {link.label}
                   </Link>
