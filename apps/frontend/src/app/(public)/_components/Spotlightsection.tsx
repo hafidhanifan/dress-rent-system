@@ -1,5 +1,5 @@
 // src/components/public/Spotlightsection.tsx
-// Server Component — fetch data spotlight langsung dari backend
+// server component - fetch data spotlight langsung dari backend
 
 import Image from "next/image";
 import Link from "next/link";
@@ -13,6 +13,8 @@ type DressPhoto = {
   isThumbnail: boolean;
   order: number;
 };
+
+// data dress secukupnya buat kartu spotlight
 type Dress = {
   id: number;
   name: string;
@@ -21,6 +23,7 @@ type Dress = {
   photos: DressPhoto[];
 };
 
+// ambil dress yang di-set spotlight (fallback ke terbaru kalau kosong)
 async function getSpotlightDresses(): Promise<Dress[]> {
   try {
     const res = await fetch(
@@ -40,7 +43,7 @@ const getThumb = (d: Dress) =>
 export default async function SpotlightSection() {
   const dresses = await getSpotlightDresses();
 
-  // Kalau tidak ada dress sama sekali (database kosong), sembunyikan section
+  // database kosong -> sembunyikan section, tidak nampilin apa-apa
   if (dresses.length === 0) return null;
 
   return (
@@ -48,7 +51,6 @@ export default async function SpotlightSection() {
       className="w-full py-16 md:py-24 px-6 md:px-12 lg:px-20"
       style={{ background: "var(--user-bg)" }}
     >
-      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 md:gap-0 mb-10 md:mb-14">
         <div>
           <p
@@ -84,7 +86,6 @@ export default async function SpotlightSection() {
         </div>
       </div>
 
-      {/* Grid kartu dress */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
         {dresses.map((dress) => (
           <DressCard key={dress.id} dress={dress} thumb={getThumb(dress)} />
@@ -94,6 +95,7 @@ export default async function SpotlightSection() {
   );
 }
 
+// satu kartu dress di grid spotlight
 function DressCard({
   dress,
   thumb,

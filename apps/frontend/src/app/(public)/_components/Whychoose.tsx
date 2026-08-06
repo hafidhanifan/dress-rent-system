@@ -4,9 +4,7 @@ import { useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-// ─────────────────────────────────────────────────────────────
-// Daftar keunggulan — ganti teks sesuai kebutuhan bisnismu
-// ─────────────────────────────────────────────────────────────
+// daftar keunggulan yang ditampilkan di kolom kanan
 const features = [
   {
     id: 1,
@@ -33,7 +31,7 @@ const features = [
 export default function WhyChooseSection() {
   const sectionRef = useRef<HTMLElement>(null);
 
-  // ── Animasi scroll-in ──
+  // animasi muncul pelan saat section kelihatan di layar
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -78,20 +76,10 @@ export default function WhyChooseSection() {
       style={{ background: "var(--user-bg)" }}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-20">
-        {/*
-          Layout dua kolom:
-          - Mobile  : foto atas, teks bawah (stack vertikal)
-          - Desktop : foto kiri (55%), teks kanan (45%)
-        */}
+        {/* mobile: foto atas teks bawah, desktop: foto kiri teks kanan */}
         <div className="flex flex-col lg:flex-row gap-12 lg:gap-0 items-center lg:items-stretch">
-          {/* ════════════════════════════
-              KOLOM KIRI — Foto kolase
-          ════════════════════════════ */}
+          {/* kolom kiri, kolase 2 foto bertumpuk */}
           <div className="relative w-full lg:w-[55%] lg:pr-16">
-            {/*
-              Foto 1 — besar, pojok kiri atas
-              Mengambil ~75% lebar kolom
-            */}
             <div
               data-reveal
               data-delay="0.05"
@@ -106,21 +94,10 @@ export default function WhyChooseSection() {
               />
             </div>
 
-            {/*
-              Foto 2 — lebih kecil, overlap di pojok kanan bawah foto 1
-              Posisi absolute: right-0, ditaruh di tengah-bawah foto 1
-            */}
             <div
               data-reveal
               data-delay="0.15"
-              className="
-                absolute
-                right-0 lg:right-12
-                bottom-0
-                w-[52%]
-                overflow-hidden
-                shadow-xl
-              "
+              className="absolute right-0 lg:right-12 bottom-0 w-[52%] overflow-hidden shadow-xl"
               style={{ aspectRatio: "3/4" }}
             >
               <Image
@@ -131,27 +108,16 @@ export default function WhyChooseSection() {
               />
             </div>
 
-            {/*
-              Dekorasi: angka besar samar di background
-              Memberi kedalaman visual tanpa mengganggu foto
-            */}
             <span
-              className="
-                absolute -bottom-6 left-0
-                font-serif text-[8rem] md:text-[10rem] font-light
-                leading-none select-none pointer-events-none
-              "
+              className="absolute -bottom-6 left-0 font-serif text-[8rem] md:text-[10rem] font-light leading-none select-none pointer-events-none"
               style={{ color: "var(--user-text-faint)", opacity: 0.4 }}
             >
               N
             </span>
           </div>
 
-          {/* ════════════════════════════
-              KOLOM KANAN — Konten teks
-          ════════════════════════════ */}
+          {/* kolom kanan, judul + daftar keunggulan + tombol */}
           <div className="w-full lg:w-[45%] flex flex-col justify-center">
-            {/* Garis dekoratif atas */}
             <div
               data-reveal
               data-delay="0.1"
@@ -159,7 +125,6 @@ export default function WhyChooseSection() {
               style={{ background: "var(--user-text-muted)" }}
             />
 
-            {/* Judul */}
             <h2
               data-reveal
               data-delay="0.15"
@@ -172,7 +137,6 @@ export default function WhyChooseSection() {
               Why choose <em className="italic">Naia Dress?</em>
             </h2>
 
-            {/* Subtitle */}
             <p
               data-reveal
               data-delay="0.2"
@@ -183,7 +147,6 @@ export default function WhyChooseSection() {
               to own it all. Just rent, wear it, and shine.
             </p>
 
-            {/* Daftar keunggulan */}
             <ul className="flex flex-col gap-6 md:gap-7 mb-10 md:mb-14">
               {features.map((f, i) => (
                 <li
@@ -192,7 +155,6 @@ export default function WhyChooseSection() {
                   data-delay={String(0.25 + i * 0.1)}
                   className="flex items-start gap-4"
                 >
-                  {/* Icon centang custom — SVG sederhana */}
                   <span className="shrink-0 mt-0.5">
                     <svg
                       width="20"
@@ -201,7 +163,6 @@ export default function WhyChooseSection() {
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg"
                     >
-                      {/* Lingkaran */}
                       <circle
                         cx="10"
                         cy="10"
@@ -209,7 +170,6 @@ export default function WhyChooseSection() {
                         stroke="var(--user-text-muted)"
                         strokeWidth="1"
                       />
-                      {/* Centang */}
                       <path
                         d="M6 10.5l2.5 2.5 5.5-6"
                         stroke="var(--user-text-muted)"
@@ -220,7 +180,6 @@ export default function WhyChooseSection() {
                     </svg>
                   </span>
 
-                  {/* Teks fitur */}
                   <div>
                     <p
                       className="font-sans text-[10px] tracking-[0.2em] uppercase mb-1"
@@ -239,26 +198,14 @@ export default function WhyChooseSection() {
               ))}
             </ul>
 
-            {/* Tombol CTA */}
             <div data-reveal data-delay="0.7">
               <Link
                 href="/about"
-                className="
-                  group inline-flex items-center gap-4
-                  font-sans text-[10px] tracking-[0.25em] uppercase
-                "
+                className="group inline-flex items-center gap-4 font-sans text-[10px] tracking-[0.25em] uppercase"
                 style={{ color: "var(--user-text-secondary)" }}
               >
-                {/*
-                  Tombol pill — background muda, border tipis
-                  Hover: background sedikit lebih gelap
-                */}
                 <span
-                  className="
-                    px-8 py-3.5
-                    rounded-full
-                    transition-colors duration-300
-                  "
+                  className="px-8 py-3.5 rounded-full transition-colors duration-300"
                   style={{
                     background: "var(--user-bg-alt)",
                     border: "1px solid var(--user-border)",

@@ -6,7 +6,7 @@ export default function HeroSection() {
       className="relative w-full h-screen overflow-hidden flex flex-col"
       style={{ background: "var(--user-bg)" }}
     >
-      {/* ── Headline ── */}
+      {/* headline */}
       <div className="text-center pt-28 md:pt-32 px-4 shrink-0">
         <h1 className="font-serif leading-none tracking-tight">
           <span
@@ -32,9 +32,9 @@ export default function HeroSection() {
         </h1>
       </div>
 
-      {/* ── Kolase Foto — flex-1 mengisi sisa ruang ── */}
+      {/* kolase foto, flex-1 mengisi sisa ruang */}
       <div className="relative flex items-end justify-center gap-1.5 md:gap-2 flex-1 min-h-0 mt-6 md:mt-8">
-        {/* Foto 1 */}
+        {/* foto 1 */}
         <div
           className="relative w-[22%] md:w-[18%] overflow-hidden shrink-0 -ml-2 md:-ml-4"
           style={{ height: "70%" }}
@@ -47,7 +47,7 @@ export default function HeroSection() {
           />
         </div>
 
-        {/* Foto 2 — paling tinggi */}
+        {/* foto 2, paling tinggi */}
         <div
           className="relative w-[28%] md:w-[24%] overflow-hidden shrink-0"
           style={{ height: "90%" }}
@@ -60,7 +60,7 @@ export default function HeroSection() {
           />
         </div>
 
-        {/* Foto 3 */}
+        {/* foto 3 */}
         <div
           className="relative w-[28%] md:w-[24%] overflow-hidden shrink-0"
           style={{ height: "80%" }}
@@ -73,7 +73,7 @@ export default function HeroSection() {
           />
         </div>
 
-        {/* Foto 4 */}
+        {/* foto 4 */}
         <div
           className="relative w-[16%] md:w-[13%] overflow-hidden shrink-0"
           style={{ height: "60%" }}
@@ -87,7 +87,7 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* ── Tagline bawah ── */}
+      {/* tagline bawah */}
       <div className="text-center py-4 md:py-6 shrink-0">
         <p
           className="font-sans text-[10px] md:text-[11px] tracking-[0.3em] uppercase"

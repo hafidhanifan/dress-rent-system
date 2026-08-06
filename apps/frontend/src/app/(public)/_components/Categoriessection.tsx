@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 
+// satu kategori dress, dipakai buat bikin link filter di halaman dresses
 type Category = { id: number; name: string; slug: string; isActive: boolean };
 
 export default function CategoriesSection({
@@ -13,6 +14,7 @@ export default function CategoriesSection({
 }) {
   const sectionRef = useRef<HTMLElement>(null);
 
+  // animasi muncul pelan-pelan saat section kelihatan di layar
   useEffect(() => {
     const section = sectionRef.current;
     if (!section) return;
@@ -59,9 +61,7 @@ export default function CategoriesSection({
       className="w-full h-screen flex flex-col justify-center overflow-hidden"
       style={{ background: "var(--user-bg)" }}
     >
-      {/* ══════════════════════════
-          MOBILE  (<md)
-      ══════════════════════════ */}
+      {/* tampilan mobile, foto ditumpuk di bawah daftar kategori */}
       <div className="md:hidden flex flex-col items-center py-16 px-6 gap-10">
         <div className="flex flex-col items-center text-center w-full">
           <p
@@ -150,9 +150,7 @@ export default function CategoriesSection({
         </div>
       </div>
 
-      {/* ══════════════════════════
-          DESKTOP (≥md)
-      ══════════════════════════ */}
+      {/* tampilan desktop, foto kiri-kanan mengapit daftar kategori */}
       <div className="hidden md:flex items-stretch justify-center min-h-150 lg:min-h-170">
         <div
           data-reveal

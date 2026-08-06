@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+// label hari & nama bulan buat ditampilkan di kalender
 const DAYS = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
 const MONTHS = [
   "Januari",
@@ -18,6 +19,7 @@ const MONTHS = [
   "Desember",
 ];
 
+// bentuk data rentang tanggal yang dipilih user
 export type DateRange = {
   startDate: Date | null;
   endDate: Date | null;
@@ -29,6 +31,7 @@ type Props = {
   minRentalDays?: number;
 };
 
+// cek dua tanggal jatuh di hari yang sama
 function sameDay(a: Date | null, b: Date | null) {
   if (!a || !b) return false;
   return (
@@ -38,6 +41,7 @@ function sameDay(a: Date | null, b: Date | null) {
   );
 }
 
+// cek tanggal d ada di antara a dan b (tidak termasuk ujungnya)
 function isBetween(d: Date, a: Date | null, b: Date | null) {
   if (!a || !b) return false;
   const s = a < b ? a : b;
@@ -45,12 +49,14 @@ function isBetween(d: Date, a: Date | null, b: Date | null) {
   return d > s && d < e;
 }
 
+// buang jam/menit/detik, sisain tanggalnya saja
 function startOfDay(d: Date) {
   const copy = new Date(d);
   copy.setHours(0, 0, 0, 0);
   return copy;
 }
 
+// warna satu sel kalender tergantung statusnya
 function getDayStyle({
   isPast,
   isStart,
@@ -134,6 +140,7 @@ export default function DateRangePicker({
 
   return (
     <div>
+      {/* dua bulan berdampingan */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MonthGrid
           year={viewYear}
@@ -163,6 +170,7 @@ export default function DateRangePicker({
         />
       </div>
 
+      {/* keterangan warna di bawah kalender */}
       <div
         className="flex items-center gap-4 mt-4 pt-4"
         style={{ borderTop: "1px solid var(--user-border)" }}
@@ -207,6 +215,7 @@ export default function DateRangePicker({
   );
 }
 
+// satu blok kalender bulanan, dipakai 2x buat tampilan dua bulan berdampingan
 function MonthGrid({
   year,
   month,
@@ -238,6 +247,7 @@ function MonthGrid({
 
   return (
     <div>
+      {/* header nama bulan + tombol navigasi */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => onNavigate(-1)}
@@ -293,6 +303,7 @@ function MonthGrid({
         </button>
       </div>
 
+      {/* grid 7 kolom: label hari + kotak-kotak tanggal */}
       <div className="grid grid-cols-7 gap-0">
         {DAYS.map((d) => (
           <div

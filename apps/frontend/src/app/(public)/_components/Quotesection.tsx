@@ -1,15 +1,5 @@
 "use client";
 
-/**
- * QuoteSection.tsx
- *
- * Cara kerja section ini:
- * 1. Section ini tingginya 500vh — tapi yang "kelihatan" hanya 100vh (sticky)
- * 2. Saat user scroll melewati 500vh tersebut, posisi visual tidak bergerak (sticky)
- * 3. Scroll progress (0–1) dikonversi jadi animasi opacity per kata
- * 4. Setelah semua kata muncul (scroll habis), baru bisa lanjut scroll ke bawah
- */
-
 import { useRef, useEffect } from "react";
 import {
   motion,
@@ -18,6 +8,7 @@ import {
   MotionValue,
 } from "motion/react";
 
+// isi quote yang muncul kata per kata seiring scroll
 const QUOTE =
   "Every dress is a silent poem — it speaks of who you are before you say a word. Wear it with grace, move with confidence, and let every thread remind you that you were made to be seen, to be felt, and to be remembered.";
 const AUTHOR = "NAIA DRESS";
@@ -25,10 +16,7 @@ const AUTHOR = "NAIA DRESS";
 export default function QuoteSection() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Hitung progress MANUAL langsung dari posisi scroll asli,
-  // tidak pakai useScroll dari Motion supaya tidak kena bug
-  // pengukuran internal yang kadang salah kalau ada layout shift
-  // (misal gambar yang belum selesai load bikin tinggi halaman berubah)
+  // progress dihitung manual dari posisi scroll asli (bukan lewat useScroll motion) supaya tidak salah ukur kalau ada layout shift
   const scrollYProgress = useMotionValue(0);
 
   useEffect(() => {
@@ -57,6 +45,7 @@ export default function QuoteSection() {
   const words = QUOTE.split(" ");
 
   return (
+    // tinggi 500vh, isinya sticky 100vh -> memberi jarak scroll yang cukup untuk animasi reveal per kata
     <div ref={containerRef} className="relative h-[500vh]">
       <div className="sticky top-0 h-screen w-full bg-[#f0ebe3] flex flex-col items-center justify-center px-6 md:px-16 lg:px-24 overflow-hidden">
         <p className="font-sans text-[9px] md:text-[10px] tracking-[0.35em] uppercase text-stone-400 mb-10 md:mb-14">
@@ -83,6 +72,7 @@ export default function QuoteSection() {
   );
 }
 
+// satu kata quote, muncul (blur -> tajam) sesuai posisi scroll
 function WordReveal({
   word,
   index,
@@ -112,6 +102,7 @@ function WordReveal({
   );
 
   return (
+    // wrapper span diperlukan buat memaksa browser repaint filter dengan benar saat berada di dalam flex-wrap
     <span style={{ position: "relative", display: "inline-block" }}>
       <motion.span
         className="font-serif font-light text-stone-800 leading-[1.15] tracking-[-0.01em]"
@@ -130,6 +121,7 @@ function WordReveal({
   );
 }
 
+// nama author, muncul belakangan setelah semua kata selesai tampil
 function AuthorReveal({
   author,
   scrollYProgress,
@@ -150,6 +142,7 @@ function AuthorReveal({
   );
 }
 
+// indikator "scroll" di bawah, cuma kelihatan di awal & pertengahan
 function ScrollIndicator({
   scrollYProgress,
 }: {
