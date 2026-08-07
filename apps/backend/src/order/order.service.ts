@@ -9,15 +9,17 @@ import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { DressService } from '../dress/dress.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { DressSize } from 'src/dress/dress-size.entity';
 
 @Injectable()
 export class OrderService {
   constructor(
     @InjectRepository(Order)
     private orderRepo: Repository<Order>,
+    @InjectRepository(DressSize) // ← TAMBAHKAN INI
+    private sizeRepo: Repository<DressSize>, // ← TAMBAHKAN INI
     private dressService: DressService,
   ) {}
-
   /**
    * Cek apakah size tertentu masih tersedia di rentang tanggal yang diminta
    * Logic overlap tanggal: dua rentang tanggal bentrok kalau
@@ -42,6 +44,43 @@ export class OrderService {
       .getCount();
 
     return overlappingOrders < totalStock;
+  }
+
+  /**
+   * Ambil semua rentang tanggal yang sudah dipesan (belum dibatalkan)
+   * untuk dress + ukuran tertentu, plus stok ukuran itu. Frontend yang
+   * hitung: kalau jumlah order aktif di suatu tanggal >= stok, baru
+   * tanggal itu dianggap penuh.
+   */
+  async getBookedRanges(
+    dressId: number,
+    sizeId: number | null,
+  ): Promise<{
+    ranges: { startDate: string; endDate: string }[];
+    stock: number;
+  }> {
+    const orders = await this.orderRepo
+      .createQueryBuilder('order')
+      .select(['order.startDate', 'order.endDate'])
+      .where('order.dressId = :dressId', { dressId })
+      .andWhere(sizeId ? 'order.sizeId = :sizeId' : 'order.sizeId IS NULL', {
+        sizeId,
+      })
+      .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
+      .getMany();
+
+    const ranges = orders.map((o) => ({
+      startDate: o.startDate,
+      endDate: o.endDate,
+    }));
+
+    let stock = 1;
+    if (sizeId) {
+      const size = await this.sizeRepo.findOne({ where: { id: sizeId } });
+      stock = size?.stock ?? 1;
+    }
+
+    return { ranges, stock };
   }
 
   /** Buat pesanan baru */

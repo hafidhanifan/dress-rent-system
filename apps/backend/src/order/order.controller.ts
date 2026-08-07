@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  Query,
   ParseIntPipe,
   UseGuards,
   Req,
@@ -75,6 +76,21 @@ export class OrderController {
   @Get()
   findAll(@Req() req: any) {
     return this.orderService.findByUser(req.user.sub);
+  }
+
+  /**
+   * GET /orders/booked-ranges/:dressId?sizeId=X
+   * Ambil rentang tanggal yang sudah dipesan, buat highlight kalender
+   */
+  @Get('booked-ranges/:dressId')
+  getBookedRanges(
+    @Param('dressId', ParseIntPipe) dressId: number,
+    @Query('sizeId') sizeId?: string,
+  ) {
+    return this.orderService.getBookedRanges(
+      dressId,
+      sizeId ? Number(sizeId) : null,
+    );
   }
 
   /** GET /orders/:id — detail pesanan milik user yang login */

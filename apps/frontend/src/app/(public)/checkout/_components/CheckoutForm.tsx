@@ -112,6 +112,10 @@ export default function CheckoutForm({
   const [error, setError] = useState("");
   const [step, setStep] = useState<1 | 2>(1);
   const [createdOrderId, setCreatedOrderId] = useState<number | null>(null);
+  const [bookedRanges, setBookedRanges] = useState<
+    { startDate: string; endDate: string }[]
+  >([]);
+  const [sizeStock, setSizeStock] = useState(1);
 
   // isi nomor wa otomatis dari profil user begitu datanya siap.
   // dihitung langsung saat render (bukan lewat useEffect) supaya tidak
@@ -134,6 +138,29 @@ export default function CheckoutForm({
       );
     }
   }, [ready, loggedIn, dress.id, initialSize, router]);
+
+  // ambil tanggal yang sudah dipesan buat dress + ukuran ini,
+  // dipakai buat highlight kalender. refetch tiap ukuran berubah
+  useEffect(() => {
+    const fetchBookedRanges = async () => {
+      try {
+        const url = selectedSize
+          ? `${API}/orders/booked-ranges/${dress.id}?sizeId=${selectedSize.id}`
+          : `${API}/orders/booked-ranges/${dress.id}`;
+        const res = await apiFetch(url, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setBookedRanges(data.ranges);
+          setSizeStock(data.stock);
+        }
+      } catch {
+        // gagal ambil data booked ranges -> kalender tetap tampil normal
+      }
+    };
+    fetchBookedRanges();
+  }, [dress.id, selectedSize]);
 
   const totalDays =
     dateRange.startDate && dateRange.endDate
@@ -255,6 +282,10 @@ export default function CheckoutForm({
                 totalDays={totalDays}
                 canProceed={!!canProceed}
                 onNext={() => setStep(2)}
+                bookedRanges={bookedRanges}
+                stock={sizeStock}
+                selectedSize={selectedSize}
+                onSelectSize={setSelectedSize}
               />
             )}
 
@@ -379,7 +410,7 @@ function StepIndicator({ step }: { step: 1 | 2 }) {
   );
 }
 
-// step 1 — kalender pilih tanggal sewa
+// step 1 — pilih ukuran dulu (kalau ada >1 pilihan), baru kalender tanggal sewa
 function DateStep({
   dress,
   dateRange,
@@ -387,6 +418,10 @@ function DateStep({
   totalDays,
   canProceed,
   onNext,
+  bookedRanges,
+  stock,
+  selectedSize,
+  onSelectSize,
 }: {
   dress: Dress;
   dateRange: DateRange;
@@ -394,7 +429,16 @@ function DateStep({
   totalDays: number;
   canProceed: boolean;
   onNext: () => void;
+  bookedRanges: { startDate: string; endDate: string }[];
+  stock: number;
+  selectedSize: DressSize | null;
+  onSelectSize: (size: DressSize) => void;
 }) {
+  // kalau dress punya lebih dari 1 ukuran, wajib pilih dulu sebelum
+  // kalender muncul -- supaya highlight tanggal terpakai akurat
+  // sesuai stok ukuran yang benar
+  const needsSizeFirst = dress.sizes.length > 1 && !selectedSize;
+
   return (
     <div
       className="p-6 md:p-8"
@@ -407,83 +451,132 @@ function DateStep({
         className="font-serif font-light text-xl mb-1"
         style={{ color: "var(--user-text)" }}
       >
-        Pilih Tanggal Sewa
+        {needsSizeFirst ? "Pilih Ukuran" : "Pilih Tanggal Sewa"}
       </h2>
       <p
         className="font-sans text-[11px] mb-6"
         style={{ color: "var(--user-text-muted)" }}
       >
-        Minimal sewa{" "}
-        <span style={{ color: "var(--user-text-secondary)" }}>
-          {dress.minRentalDays} hari
-        </span>
+        {needsSizeFirst ? (
+          "Pilih ukuran dulu supaya kami bisa tunjukkan tanggal yang tersedia"
+        ) : (
+          <>
+            Minimal sewa{" "}
+            <span style={{ color: "var(--user-text-secondary)" }}>
+              {dress.minRentalDays} hari
+            </span>
+          </>
+        )}
       </p>
 
-      <DateRangePicker
-        value={dateRange}
-        onChange={onChangeDateRange}
-        minRentalDays={dress.minRentalDays}
-      />
-
-      {dateRange.startDate && dateRange.endDate && (
-        <div
-          className="mt-6 p-4"
-          style={{
-            background: "var(--user-bg)",
-            border: "1px solid var(--user-border)",
-          }}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p
-                className="font-sans text-[9px] tracking-[0.2em] uppercase mb-1"
+      {needsSizeFirst ? (
+        <SizePicker
+          sizes={dress.sizes}
+          selectedSize={selectedSize}
+          onSelect={onSelectSize}
+        />
+      ) : (
+        <>
+          {dress.sizes.length > 1 && selectedSize && (
+            <div
+              className="flex items-center justify-between mb-5 pb-4"
+              style={{ borderBottom: "1px solid var(--user-border)" }}
+            >
+              <span
+                className="font-sans text-[10px] tracking-[0.15em] uppercase"
                 style={{ color: "var(--user-text-muted)" }}
               >
-                Tanggal Sewa
-              </p>
-              <p
-                className="font-sans text-sm"
-                style={{ color: "var(--user-text-secondary)" }}
-              >
-                {formatDate(dateRange.startDate)} —{" "}
-                {formatDate(dateRange.endDate)}
-              </p>
+                Ukuran dipilih
+              </span>
+              <div className="flex items-center gap-3">
+                <span
+                  className="font-serif text-base"
+                  style={{ color: "var(--user-text)" }}
+                >
+                  {selectedSize.label}
+                </span>
+                <button
+                  onClick={() => onSelectSize(null as unknown as DressSize)}
+                  className="font-sans text-[9px] tracking-widest uppercase underline"
+                  style={{ color: "var(--user-text-muted)" }}
+                >
+                  Ganti
+                </button>
+              </div>
             </div>
-            <div className="text-right">
-              <p
-                className="font-sans text-[9px] tracking-[0.2em] uppercase mb-1"
-                style={{ color: "var(--user-text-muted)" }}
-              >
-                Durasi
-              </p>
-              <p
-                className="font-serif font-light text-lg"
-                style={{ color: "var(--user-text)" }}
-              >
-                {totalDays} hari
-              </p>
-            </div>
-          </div>
-          {totalDays < dress.minRentalDays && (
-            <p className="font-sans text-[10px] text-red-400 mt-3">
-              Minimal sewa {dress.minRentalDays} hari
-            </p>
           )}
-        </div>
-      )}
 
-      <button
-        onClick={onNext}
-        disabled={!canProceed}
-        className="w-full mt-6 py-4 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
-        style={{
-          background: canProceed ? "var(--user-text)" : "var(--user-border)",
-          color: canProceed ? "var(--user-bg)" : "var(--user-text-muted)",
-          cursor: canProceed ? "pointer" : "not-allowed",
-        }}
-      >
-        Lanjut ke Ringkasan →
-      </button>
+          <DateRangePicker
+            value={dateRange}
+            onChange={onChangeDateRange}
+            minRentalDays={dress.minRentalDays}
+            stock={stock}
+            bookedRanges={bookedRanges}
+          />
+
+          {dateRange.startDate && dateRange.endDate && (
+            <div
+              className="mt-6 p-4"
+              style={{
+                background: "var(--user-bg)",
+                border: "1px solid var(--user-border)",
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p
+                    className="font-sans text-[9px] tracking-[0.2em] uppercase mb-1"
+                    style={{ color: "var(--user-text-muted)" }}
+                  >
+                    Tanggal Sewa
+                  </p>
+                  <p
+                    className="font-sans text-sm"
+                    style={{ color: "var(--user-text-secondary)" }}
+                  >
+                    {formatDate(dateRange.startDate)} —{" "}
+                    {formatDate(dateRange.endDate)}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p
+                    className="font-sans text-[9px] tracking-[0.2em] uppercase mb-1"
+                    style={{ color: "var(--user-text-muted)" }}
+                  >
+                    Durasi
+                  </p>
+                  <p
+                    className="font-serif font-light text-lg"
+                    style={{ color: "var(--user-text)" }}
+                  >
+                    {totalDays} hari
+                  </p>
+                </div>
+              </div>
+              {totalDays < dress.minRentalDays && (
+                <p className="font-sans text-[10px] text-red-400 mt-3">
+                  Minimal sewa {dress.minRentalDays} hari
+                </p>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={onNext}
+            disabled={!canProceed}
+            className="w-full mt-6 py-4 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
+            style={{
+              background: canProceed
+                ? "var(--user-text)"
+                : "var(--user-border)",
+              color: canProceed ? "var(--user-bg)" : "var(--user-text-muted)",
+              cursor: canProceed ? "pointer" : "not-allowed",
+            }}
+          >
+            Lanjut ke Ringkasan →
+          </button>
+        </>
+      )}
     </div>
   );
 }
