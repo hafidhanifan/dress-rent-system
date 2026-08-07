@@ -1,5 +1,5 @@
 // src/app/(public)/dresses/[slug]/page.tsx
-// Server Component — fetch data dress berdasarkan slug
+// server component, fetch data dress berdasarkan slug
 
 import { notFound } from "next/navigation";
 import DressDetail from "@/app/(public)/dresses/_components/DressDetail";
@@ -22,6 +22,8 @@ type DressSize = {
   length: number | null;
   stock: number;
 };
+
+// data lengkap satu dress untuk halaman detail
 type Dress = {
   id: number;
   name: string;
@@ -61,6 +63,7 @@ export default async function DressDetailPage({
 }) {
   const { slug } = await params;
   const dress = await getDress(slug);
+  // slug tidak ketemu -> tampilkan halaman 404 bawaan next.js
   if (!dress) notFound();
   return <DressDetail dress={dress} />;
 }

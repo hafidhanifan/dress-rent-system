@@ -1,15 +1,21 @@
-// Client Component
 "use client";
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useWishlist } from "@/hooks/useWishlist";
-import Image from "next/image";
-import { apiFetch } from "@/lib/apiFetch";
 
 const IMG_BASE = process.env.NEXT_PUBLIC_IMG_BASE ?? "http://localhost:3001";
+
+const SORT_OPTIONS = [
+  { value: "default", label: "Urutan Default" },
+  { value: "price-asc", label: "Harga Terendah" },
+  { value: "price-desc", label: "Harga Tertinggi" },
+] as const;
+
+type SortValue = (typeof SORT_OPTIONS)[number]["value"];
 
 type Category = { id: number; name: string; slug: string; isActive: boolean };
 type DressPhoto = {
@@ -18,6 +24,8 @@ type DressPhoto = {
   isThumbnail: boolean;
   order: number;
 };
+
+// data dress secukupnya buat ditampilkan di grid
 type Dress = {
   id: number;
   name: string;
@@ -43,18 +51,14 @@ export default function DressesList({
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState("");
-  // Baca kategori aktif dari query ?cat=slug -> kalau tidak ada, default "all"
-  const [activeCat, setActiveCat] = useState<string>(
-    searchParams.get("cat") ?? "all",
-  );
-  const [sort, setSort] = useState<"default" | "price-asc" | "price-desc">(
-    "default",
-  );
+  // baca kategori aktif dari query ?cat=slug, default "all" kalau kosong
+  const [activeCat, setActiveCat] = useState(searchParams.get("cat") ?? "all");
+  const [sort, setSort] = useState<SortValue>("default");
 
   const filtered = initialDresses
     .filter((d) => {
       const matchSearch = d.name.toLowerCase().includes(search.toLowerCase());
-      // Cocokkan pakai SLUG kategori (bukan id) supaya sinkron dengan URL
+      // cocokkan pakai slug kategori, bukan id, biar sinkron sama url
       const matchCat = activeCat === "all" || d.category?.slug === activeCat;
       return matchSearch && matchCat;
     })
@@ -64,190 +68,28 @@ export default function DressesList({
       return 0;
     });
 
+  const resetFilter = () => {
+    setSearch("");
+    setActiveCat("all");
+  };
+
   return (
     <div className="min-h-screen" style={{ background: "var(--user-bg)" }}>
-      <div className="pt-32 pb-14 px-6 text-center">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <Link
-            href="/"
-            className="font-sans text-[10px] tracking-[0.2em] uppercase transition-colors"
-            style={{ color: "var(--user-text-muted)" }}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.color = "var(--user-text-secondary)")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.color = "var(--user-text-muted)")
-            }
-          >
-            Home
-          </Link>
-          <span className="text-xs" style={{ color: "var(--user-text-faint)" }}>
-            /
-          </span>
-          <span
-            className="font-sans text-[10px] tracking-[0.2em] uppercase"
-            style={{ color: "var(--user-text-secondary)" }}
-          >
-            All Dresses
-          </span>
-        </div>
+      <PageHeader dressCount={filtered.length} />
 
-        <h1
-          className="font-serif font-light leading-none mb-5"
-          style={{
-            color: "var(--user-text)",
-            fontSize: "clamp(2.8rem, 7vw, 6rem)",
-          }}
-        >
-          All <em className="italic">Dresses</em>
-        </h1>
-
-        <p
-          className="font-sans font-light text-sm leading-relaxed max-w-md mx-auto"
-          style={{ color: "var(--user-text-muted)" }}
-        >
-          Setiap gaun adalah sebuah cerita — temukan yang paling sempurna untuk
-          momenmu.
-        </p>
-
-        <div className="flex items-center justify-center gap-4 mt-8">
-          <div
-            className="w-12 h-px"
-            style={{ background: "var(--user-text-faint)" }}
-          />
-          <span
-            className="font-sans text-[9px] tracking-[0.35em] uppercase"
-            style={{ color: "var(--user-text-faint)" }}
-          >
-            {filtered.length} dress
-          </span>
-          <div
-            className="w-12 h-px"
-            style={{ background: "var(--user-text-faint)" }}
-          />
-        </div>
-      </div>
-
-      <div
-        className="sticky top-0 z-20 backdrop-blur-sm"
-        style={{
-          background: "color-mix(in srgb, var(--user-bg) 90%, transparent)",
-          borderBottom: "1px solid var(--user-border)",
-        }}
-      >
-        <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2 flex-wrap">
-            {[
-              { slug: "all", name: "Semua" },
-              ...initialCategories.map((c) => ({
-                slug: c.slug,
-                name: c.name,
-              })),
-            ].map((cat) => (
-              <button
-                key={cat.slug}
-                onClick={() => setActiveCat(cat.slug)}
-                className="font-sans text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full transition-all duration-200"
-                style={{
-                  background:
-                    activeCat === cat.slug ? "var(--user-text)" : "transparent",
-                  color:
-                    activeCat === cat.slug
-                      ? "var(--user-bg)"
-                      : "var(--user-text-secondary)",
-                  border: `1px solid ${activeCat === cat.slug ? "var(--user-text)" : "var(--user-border)"}`,
-                }}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="relative">
-              <svg
-                width="12"
-                height="12"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-                className="absolute left-3 top-1/2 -translate-y-1/2"
-                style={{ color: "var(--user-text-muted)" }}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="m21 21-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                placeholder="Cari dress..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent rounded-full pl-8 pr-4 py-1.5 font-sans text-[11px] outline-none transition-colors w-36 md:w-44"
-                style={{
-                  border: "1px solid var(--user-border)",
-                  color: "var(--user-text-secondary)",
-                }}
-              />
-            </div>
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value as typeof sort)}
-              className="bg-transparent rounded-full px-3 py-1.5 font-sans text-[11px] outline-none cursor-pointer transition-colors appearance-none"
-              style={{
-                border: "1px solid var(--user-border)",
-                color: "var(--user-text-secondary)",
-              }}
-            >
-              <option value="default">Urutan Default</option>
-              <option value="price-asc">Harga Terendah</option>
-              <option value="price-desc">Harga Tertinggi</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <FilterBar
+        categories={initialCategories}
+        activeCat={activeCat}
+        onChangeCat={setActiveCat}
+        search={search}
+        onChangeSearch={setSearch}
+        sort={sort}
+        onChangeSort={setSort}
+      />
 
       <main className="max-w-7xl mx-auto px-6 md:px-10 py-12 md:py-16">
         {filtered.length === 0 ? (
-          <div className="text-center py-24">
-            <p
-              className="font-serif font-light text-2xl mb-3"
-              style={{ color: "var(--user-text-muted)" }}
-            >
-              Dress tidak ditemukan
-            </p>
-            <p
-              className="font-sans text-sm"
-              style={{ color: "var(--user-text-muted)" }}
-            >
-              Coba ubah filter atau kata pencarian
-            </p>
-            <button
-              onClick={() => {
-                setSearch("");
-                setActiveCat("all");
-              }}
-              className="mt-6 font-sans text-[10px] tracking-[0.2em] uppercase px-5 py-2 transition-all duration-300"
-              style={{
-                color: "var(--user-text-secondary)",
-                border: "1px solid var(--user-border)",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.background = "var(--user-text)";
-                e.currentTarget.style.color = "var(--user-bg)";
-                e.currentTarget.style.borderColor = "var(--user-text)";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = "var(--user-text-secondary)";
-                e.currentTarget.style.borderColor = "var(--user-border)";
-              }}
-            >
-              Reset Filter
-            </button>
-          </div>
+          <EmptyState onReset={resetFilter} />
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-14 md:gap-x-7">
@@ -278,6 +120,216 @@ export default function DressesList({
   );
 }
 
+// judul halaman, breadcrumb, dan counter jumlah dress
+function PageHeader({ dressCount }: { dressCount: number }) {
+  return (
+    <div className="pt-32 pb-14 px-6 text-center">
+      <div className="flex items-center justify-center gap-2 mb-8">
+        <Link
+          href="/"
+          className="font-sans text-[10px] tracking-[0.2em] uppercase transition-colors"
+          style={{ color: "var(--user-text-muted)" }}
+          onMouseOver={(e) =>
+            (e.currentTarget.style.color = "var(--user-text-secondary)")
+          }
+          onMouseOut={(e) =>
+            (e.currentTarget.style.color = "var(--user-text-muted)")
+          }
+        >
+          Home
+        </Link>
+        <span className="text-xs" style={{ color: "var(--user-text-faint)" }}>
+          /
+        </span>
+        <span
+          className="font-sans text-[10px] tracking-[0.2em] uppercase"
+          style={{ color: "var(--user-text-secondary)" }}
+        >
+          All Dresses
+        </span>
+      </div>
+
+      <h1
+        className="font-serif font-light leading-none mb-5"
+        style={{
+          color: "var(--user-text)",
+          fontSize: "clamp(2.8rem, 7vw, 6rem)",
+        }}
+      >
+        All <em className="italic">Dresses</em>
+      </h1>
+
+      <p
+        className="font-sans font-light text-sm leading-relaxed max-w-md mx-auto"
+        style={{ color: "var(--user-text-muted)" }}
+      >
+        Setiap gaun adalah sebuah cerita — temukan yang paling sempurna untuk
+        momenmu.
+      </p>
+
+      <div className="flex items-center justify-center gap-4 mt-8">
+        <div
+          className="w-12 h-px"
+          style={{ background: "var(--user-text-faint)" }}
+        />
+        <span
+          className="font-sans text-[9px] tracking-[0.35em] uppercase"
+          style={{ color: "var(--user-text-faint)" }}
+        >
+          {dressCount} dress
+        </span>
+        <div
+          className="w-12 h-px"
+          style={{ background: "var(--user-text-faint)" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// bar sticky berisi filter kategori, pencarian, dan urutan
+function FilterBar({
+  categories,
+  activeCat,
+  onChangeCat,
+  search,
+  onChangeSearch,
+  sort,
+  onChangeSort,
+}: {
+  categories: Category[];
+  activeCat: string;
+  onChangeCat: (slug: string) => void;
+  search: string;
+  onChangeSearch: (value: string) => void;
+  sort: SortValue;
+  onChangeSort: (value: SortValue) => void;
+}) {
+  const catOptions = [{ slug: "all", name: "Semua" }, ...categories];
+
+  return (
+    <div
+      className="sticky top-0 z-20 backdrop-blur-sm"
+      style={{
+        background: "color-mix(in srgb, var(--user-bg) 90%, transparent)",
+        borderBottom: "1px solid var(--user-border)",
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-6 md:px-10 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
+          {catOptions.map((cat) => (
+            <button
+              key={cat.slug}
+              onClick={() => onChangeCat(cat.slug)}
+              className="font-sans text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-full transition-all duration-200"
+              style={{
+                background:
+                  activeCat === cat.slug ? "var(--user-text)" : "transparent",
+                color:
+                  activeCat === cat.slug
+                    ? "var(--user-bg)"
+                    : "var(--user-text-secondary)",
+                border: `1px solid ${activeCat === cat.slug ? "var(--user-text)" : "var(--user-border)"}`,
+              }}
+            >
+              {cat.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="relative">
+            <svg
+              width="12"
+              height="12"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              className="absolute left-3 top-1/2 -translate-y-1/2"
+              style={{ color: "var(--user-text-muted)" }}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m21 21-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"
+              />
+            </svg>
+            <input
+              type="text"
+              placeholder="Cari dress..."
+              value={search}
+              onChange={(e) => onChangeSearch(e.target.value)}
+              className="bg-transparent rounded-full pl-8 pr-4 py-1.5 font-sans text-[11px] outline-none transition-colors w-36 md:w-44"
+              style={{
+                border: "1px solid var(--user-border)",
+                color: "var(--user-text-secondary)",
+              }}
+            />
+          </div>
+
+          <select
+            value={sort}
+            onChange={(e) => onChangeSort(e.target.value as SortValue)}
+            className="bg-transparent rounded-full px-3 py-1.5 font-sans text-[11px] outline-none cursor-pointer transition-colors appearance-none"
+            style={{
+              border: "1px solid var(--user-border)",
+              color: "var(--user-text-secondary)",
+            }}
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// tampilan saat hasil filter/pencarian kosong
+function EmptyState({ onReset }: { onReset: () => void }) {
+  return (
+    <div className="text-center py-24">
+      <p
+        className="font-serif font-light text-2xl mb-3"
+        style={{ color: "var(--user-text-muted)" }}
+      >
+        Dress tidak ditemukan
+      </p>
+      <p
+        className="font-sans text-sm"
+        style={{ color: "var(--user-text-muted)" }}
+      >
+        Coba ubah filter atau kata pencarian
+      </p>
+      <button
+        onClick={onReset}
+        className="mt-6 font-sans text-[10px] tracking-[0.2em] uppercase px-5 py-2 transition-all duration-300"
+        style={{
+          color: "var(--user-text-secondary)",
+          border: "1px solid var(--user-border)",
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.background = "var(--user-text)";
+          e.currentTarget.style.color = "var(--user-bg)";
+          e.currentTarget.style.borderColor = "var(--user-text)";
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.background = "transparent";
+          e.currentTarget.style.color = "var(--user-text-secondary)";
+          e.currentTarget.style.borderColor = "var(--user-border)";
+        }}
+      >
+        Reset Filter
+      </button>
+    </div>
+  );
+}
+
+// satu kartu dress di grid, termasuk tombol wishlist di pojok kanan atas
 function DressCard({
   dress,
   thumb,
@@ -291,6 +343,16 @@ function DressCard({
   const { loggedIn } = useAuth();
   const { isWishlisted, toggleWishlist } = useWishlist();
   const wishlisted = isWishlisted(dress.id);
+
+  const handleWishlistClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!loggedIn) {
+      router.push("/auth/login?redirect=/dresses");
+      return;
+    }
+    await toggleWishlist(dress.id);
+  };
 
   return (
     <Link
@@ -341,15 +403,7 @@ function DressCard({
         )}
 
         <button
-          onClick={async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            if (!loggedIn) {
-              router.push("/auth/login?redirect=/dresses");
-              return;
-            }
-            await toggleWishlist(dress.id);
-          }}
+          onClick={handleWishlistClick}
           className={`absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition-all duration-300 ${
             wishlisted
               ? "opacity-100 scale-100 bg-white/95"

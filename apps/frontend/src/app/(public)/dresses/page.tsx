@@ -1,4 +1,4 @@
-// INI SERVER COMPONENT — tidak ada "use client"
+// server component - ambil data dress & kategori sebelum halaman dirender
 import DressesList from "@/app/(public)/dresses/_components/DressesList";
 
 type Category = { id: number; name: string; slug: string; isActive: boolean };
@@ -21,6 +21,7 @@ type Dress = {
   isActive: boolean;
 };
 
+// dress yang ditampilkan ke publik: bukan arsip & statusnya aktif
 async function getDresses(): Promise<Dress[]> {
   try {
     const res = await fetch(
