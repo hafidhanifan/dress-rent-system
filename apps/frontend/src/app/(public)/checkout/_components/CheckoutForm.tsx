@@ -115,6 +115,7 @@ export default function CheckoutForm({
   const [bookedRanges, setBookedRanges] = useState<
     { startDate: string; endDate: string }[]
   >([]);
+  const [bufferDays, setBufferDays] = useState(0);
   const [sizeStock, setSizeStock] = useState(1);
 
   // isi nomor wa otomatis dari profil user begitu datanya siap.
@@ -154,6 +155,7 @@ export default function CheckoutForm({
           const data = await res.json();
           setBookedRanges(data.ranges);
           setSizeStock(data.stock);
+          setBufferDays(data.bufferDays);
         }
       } catch {
         // gagal ambil data booked ranges -> kalender tetap tampil normal
@@ -283,6 +285,7 @@ export default function CheckoutForm({
                 canProceed={!!canProceed}
                 onNext={() => setStep(2)}
                 bookedRanges={bookedRanges}
+                bufferDays={bufferDays}
                 stock={sizeStock}
                 selectedSize={selectedSize}
                 onSelectSize={setSelectedSize}
@@ -419,6 +422,7 @@ function DateStep({
   canProceed,
   onNext,
   bookedRanges,
+  bufferDays,
   stock,
   selectedSize,
   onSelectSize,
@@ -430,6 +434,7 @@ function DateStep({
   canProceed: boolean;
   onNext: () => void;
   bookedRanges: { startDate: string; endDate: string }[];
+  bufferDays: number;
   stock: number;
   selectedSize: DressSize | null;
   onSelectSize: (size: DressSize) => void;
@@ -510,8 +515,9 @@ function DateStep({
             value={dateRange}
             onChange={onChangeDateRange}
             minRentalDays={dress.minRentalDays}
-            stock={stock}
             bookedRanges={bookedRanges}
+            bufferDays={bufferDays}
+            stock={stock}
           />
 
           {dateRange.startDate && dateRange.endDate && (

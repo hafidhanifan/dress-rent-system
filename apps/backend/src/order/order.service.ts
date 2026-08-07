@@ -11,6 +11,10 @@ import { DressService } from '../dress/dress.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { DressSize } from 'src/dress/dress-size.entity';
 
+// Jeda wajib (hari) setelah dress dikembalikan sebelum bisa disewa lagi,
+// dipakai buat waktu cuci/setrika/cek kondisi
+const CLEANING_BUFFER_DAYS = 2;
+
 @Injectable()
 export class OrderService {
   constructor(
@@ -32,6 +36,14 @@ export class OrderService {
     endDate: string,
     totalStock: number,
   ): Promise<boolean> {
+    // startDate yang dimundurkan sejumlah buffer -> supaya order lama
+    // yang endDate-nya + buffer masih nabrak tanggal baru ikut terhitung
+    const bufferedStartDate = new Date(startDate);
+    bufferedStartDate.setDate(
+      bufferedStartDate.getDate() - CLEANING_BUFFER_DAYS,
+    );
+    const bufferedStartStr = bufferedStartDate.toISOString().split('T')[0];
+
     const overlappingOrders = await this.orderRepo
       .createQueryBuilder('order')
       .where('order.dressId = :dressId', { dressId })
@@ -40,7 +52,7 @@ export class OrderService {
       })
       .andWhere('order.status != :cancelled', { cancelled: 'cancelled' })
       .andWhere('order.startDate < :endDate', { endDate })
-      .andWhere('order.endDate > :startDate', { startDate })
+      .andWhere('order.endDate > :bufferedStartStr', { bufferedStartStr })
       .getCount();
 
     return overlappingOrders < totalStock;
@@ -58,6 +70,7 @@ export class OrderService {
   ): Promise<{
     ranges: { startDate: string; endDate: string }[];
     stock: number;
+    bufferDays: number;
   }> {
     const orders = await this.orderRepo
       .createQueryBuilder('order')
@@ -80,7 +93,7 @@ export class OrderService {
       stock = size?.stock ?? 1;
     }
 
-    return { ranges, stock };
+    return { ranges, stock, bufferDays: CLEANING_BUFFER_DAYS };
   }
 
   /** Buat pesanan baru */

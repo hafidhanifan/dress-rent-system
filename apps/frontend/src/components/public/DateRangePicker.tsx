@@ -34,6 +34,7 @@ type Props = {
   minRentalDays?: number;
   bookedRanges?: BookedRange[];
   stock?: number;
+  bufferDays?: number;
 };
 
 // cek dua tanggal jatuh di hari yang sama
@@ -61,8 +62,8 @@ function startOfDay(d: Date) {
   return copy;
 }
 
-// hitung berapa order yang overlap di tanggal ini
-function countOverlapping(date: Date, bookedRanges: BookedRange[]) {
+// berapa order yang BENERAN nyewa (tanpa buffer) di tanggal ini
+function countActive(date: Date, bookedRanges: BookedRange[]) {
   return bookedRanges.filter((range) => {
     const start = startOfDay(new Date(range.startDate));
     const end = startOfDay(new Date(range.endDate));
@@ -70,10 +71,37 @@ function countOverlapping(date: Date, bookedRanges: BookedRange[]) {
   }).length;
 }
 
-// tanggal dianggap penuh kalau jumlah order yang overlap sudah
-// menyamai atau melebihi stok ukuran ini
-function isFull(date: Date, bookedRanges: BookedRange[], stock: number) {
-  return countOverlapping(date, bookedRanges) >= stock;
+// berapa order yang masih "nempatin slot" termasuk masa buffer
+// (dari startDate order sampai endDate + bufferDays)
+function countOccupied(
+  date: Date,
+  bookedRanges: BookedRange[],
+  bufferDays: number,
+) {
+  return bookedRanges.filter((range) => {
+    const start = startOfDay(new Date(range.startDate));
+    const end = startOfDay(new Date(range.endDate));
+    const bufferedEnd = new Date(end);
+    bufferedEnd.setDate(bufferedEnd.getDate() + bufferDays);
+    return date >= start && date <= bufferedEnd;
+  }).length;
+}
+
+// status satu tanggal: tersedia, kena buffer (masih ada slot lain
+// yang beneran kosong), atau penuh beneran disewa
+function getDateStatus(
+  date: Date,
+  bookedRanges: BookedRange[],
+  stock: number,
+  bufferDays: number,
+): "available" | "buffered" | "full" {
+  const active = countActive(date, bookedRanges);
+  if (active >= stock) return "full";
+
+  const occupied = countOccupied(date, bookedRanges, bufferDays);
+  if (occupied >= stock) return "buffered";
+
+  return "available";
 }
 
 // warna satu sel kalender tergantung statusnya
@@ -84,7 +112,7 @@ function getDayStyle({
   isHoverEnd,
   inRange,
   isToday,
-  booked,
+  status,
 }: {
   isPast: boolean;
   isStart: boolean;
@@ -92,7 +120,7 @@ function getDayStyle({
   isHoverEnd: boolean;
   inRange: boolean;
   isToday: boolean;
-  booked: boolean;
+  status: "available" | "buffered" | "full";
 }) {
   if (isStart || isEnd || isHoverEnd) {
     return { bg: "var(--user-text)", color: "var(--user-bg)", radius: "4px" };
@@ -104,8 +132,11 @@ function getDayStyle({
       radius: "0",
     };
   }
-  if (booked && !isPast) {
+  if (status === "full" && !isPast) {
     return { bg: "rgba(192,80,80,0.08)", color: "#c05050", radius: "4px" };
+  }
+  if (status === "buffered" && !isPast) {
+    return { bg: "rgba(200,150,60,0.08)", color: "#c8963c", radius: "4px" };
   }
   return {
     bg: "transparent",
@@ -124,6 +155,7 @@ export default function DateRangePicker({
   minRentalDays = 1,
   bookedRanges = [],
   stock = 1,
+  bufferDays = 0,
 }: Props) {
   const today = startOfDay(new Date());
   const [viewYear, setViewYear] = useState(today.getFullYear());
@@ -147,19 +179,22 @@ export default function DateRangePicker({
     setViewYear(y);
   };
 
-  // cek apakah ada tanggal penuh di sepanjang rentang s..e
-  const rangeHasFullDay = (s: Date, e: Date) => {
+  // cek apakah ada tanggal yang tidak "available" di sepanjang rentang s..e
+  const rangeHasBlockedDay = (s: Date, e: Date) => {
     const cursor = new Date(s);
     while (cursor <= e) {
-      if (isFull(cursor, bookedRanges, stock)) return true;
+      if (
+        getDateStatus(cursor, bookedRanges, stock, bufferDays) !== "available"
+      )
+        return true;
       cursor.setDate(cursor.getDate() + 1);
     }
     return false;
   };
 
   const handleClick = (date: Date) => {
-    // tanggal yang sudah penuh (overlap >= stok) tidak bisa dipilih
-    if (isFull(date, bookedRanges, stock)) return;
+    if (getDateStatus(date, bookedRanges, stock, bufferDays) !== "available")
+      return;
 
     if (!startDate || (startDate && endDate)) {
       onChange({ startDate: date, endDate: null });
@@ -172,8 +207,7 @@ export default function DateRangePicker({
     const s = date < startDate ? date : startDate;
     const e = date < startDate ? startDate : date;
 
-    // cegah pilih rentang yang di dalamnya ada tanggal penuh
-    if (rangeHasFullDay(s, e)) return;
+    if (rangeHasBlockedDay(s, e)) return;
 
     onChange({ startDate: s, endDate: e });
     setHoverDate(null);
@@ -197,6 +231,7 @@ export default function DateRangePicker({
           hoverDate={hoverDate}
           bookedRanges={bookedRanges}
           stock={stock}
+          bufferDays={bufferDays}
           onNavigate={navigate}
           onDayClick={handleClick}
           onDayHover={setHoverDate}
@@ -212,6 +247,7 @@ export default function DateRangePicker({
           hoverDate={hoverDate}
           bookedRanges={bookedRanges}
           stock={stock}
+          bufferDays={bufferDays}
           onNavigate={navigate}
           onDayClick={handleClick}
           onDayHover={setHoverDate}
@@ -251,18 +287,32 @@ export default function DateRangePicker({
           </span>
         </div>
         {bookedRanges.length > 0 && (
-          <div className="flex items-center gap-2">
-            <div
-              className="w-4 h-4 rounded-sm"
-              style={{ background: "rgba(192,80,80,0.15)" }}
-            />
-            <span
-              className="font-sans text-[10px]"
-              style={{ color: "var(--user-text-muted)" }}
-            >
-              Sudah disewa
-            </span>
-          </div>
+          <>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-sm"
+                style={{ background: "rgba(192,80,80,0.15)" }}
+              />
+              <span
+                className="font-sans text-[10px]"
+                style={{ color: "var(--user-text-muted)" }}
+              >
+                Sudah disewa
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div
+                className="w-4 h-4 rounded-sm"
+                style={{ background: "rgba(200,150,60,0.15)" }}
+              />
+              <span
+                className="font-sans text-[10px]"
+                style={{ color: "var(--user-text-muted)" }}
+              >
+                Masa pembersihan
+              </span>
+            </div>
+          </>
         )}
         {minRentalDays > 1 && (
           <span
@@ -289,6 +339,7 @@ function MonthGrid({
   hoverDate,
   bookedRanges,
   stock,
+  bufferDays,
   onNavigate,
   onDayClick,
   onDayHover,
@@ -303,6 +354,7 @@ function MonthGrid({
   hoverDate: Date | null;
   bookedRanges: BookedRange[];
   stock: number;
+  bufferDays: number;
   onNavigate: (dir: number) => void;
   onDayClick: (date: Date) => void;
   onDayHover: (date: Date | null) => void;
@@ -397,7 +449,7 @@ function MonthGrid({
             endDate ?? (startDate && hoverDate ? hoverDate : null);
           const inRange =
             !isStart && !isEnd && isBetween(date, startDate, effectiveEnd);
-          const booked = isFull(date, bookedRanges, stock);
+          const status = getDateStatus(date, bookedRanges, stock, bufferDays);
 
           const { bg, color, radius } = getDayStyle({
             isPast,
@@ -406,9 +458,18 @@ function MonthGrid({
             isHoverEnd,
             inRange,
             isToday,
-            booked,
+            status,
           });
-          const disabled = isPast || (booked && !isStart && !isEnd);
+          const disabled =
+            isPast || (status !== "available" && !isStart && !isEnd);
+
+          const title = isPast
+            ? undefined
+            : status === "full"
+              ? "Sudah disewa"
+              : status === "buffered"
+                ? "Masa pembersihan"
+                : undefined;
 
           return (
             <div
@@ -418,7 +479,7 @@ function MonthGrid({
                 !disabled && startDate && !endDate && onDayHover(date)
               }
               onMouseLeave={() => onDayHover(null)}
-              title={booked && !isPast ? "Sudah disewa" : undefined}
+              title={title}
               style={{
                 background: bg,
                 color,
@@ -431,7 +492,8 @@ function MonthGrid({
                 fontSize: 13,
                 fontFamily: "inherit",
                 fontWeight: isToday ? 500 : 400,
-                textDecoration: booked && !isPast ? "line-through" : "none",
+                textDecoration:
+                  !isPast && status !== "available" ? "line-through" : "none",
                 transition: "background 0.1s",
                 userSelect: "none",
               }}
