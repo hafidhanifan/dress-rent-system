@@ -1,5 +1,4 @@
-// src/app/(public)/profile/page.tsx
-// Server Component sederhana — logic ada di ProfileForm (client)
+// server component sederhana — logic ada di ProfileForm (client)
 
 import ProfileForm from "./_components/ProfileForm";
 

@@ -5,7 +5,9 @@ export type AuthUser = {
   id: number;
   fullName: string;
   email: string;
+  phone: string;
   role: "user" | "admin";
+  createdAt: string;
 };
 
 /** Ambil token dari localStorage */

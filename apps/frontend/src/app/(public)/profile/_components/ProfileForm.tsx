@@ -40,7 +40,6 @@ export default function ProfileForm() {
   const { user, loggedIn, ready } = useAuth();
   const [activeTab, setActiveTab] = useState<"data" | "security">("data");
 
-  // ── Data diri ──
   const [form, setForm] = useState<ProfileFormData>({
     fullName: "",
     email: "",
@@ -52,10 +51,11 @@ export default function ProfileForm() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // ── Ganti password ──
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordForm, setPasswordForm] = useState({
+    current: "",
+    next: "",
+    confirm: "",
+  });
   const [passwordErrors, setPasswordErrors] = useState<Record<string, string>>(
     {},
   );
@@ -82,7 +82,7 @@ export default function ProfileForm() {
     if (success) setSuccess(false);
   };
 
-  const validate = (): boolean => {
+  const validateProfile = (): boolean => {
     const errs: Partial<ProfileFormData> = {};
     if (!form.fullName.trim() || form.fullName.trim().length < 2)
       errs.fullName = "Nama minimal 2 karakter";
@@ -93,7 +93,7 @@ export default function ProfileForm() {
   };
 
   const handleSave = async () => {
-    if (!validate()) return;
+    if (!validateProfile()) return;
     setSaving(true);
     setErrors((p) => ({ ...p, server: undefined }));
     try {
@@ -116,6 +116,7 @@ export default function ProfileForm() {
         }));
         return;
       }
+      // sinkronkan data user baru ke localStorage, biar navbar dkk ikut update
       const token = getToken();
       if (token) saveAuth(token, data);
       setSuccess(true);
@@ -128,11 +129,11 @@ export default function ProfileForm() {
 
   const validatePasswordForm = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!currentPassword) errs.currentPassword = "Password lama wajib diisi";
-    if (!newPassword || newPassword.length < 6)
-      errs.newPassword = "Minimal 6 karakter";
-    if (newPassword !== confirmPassword)
-      errs.confirmPassword = "Konfirmasi tidak cocok";
+    if (!passwordForm.current) errs.current = "Password lama wajib diisi";
+    if (!passwordForm.next || passwordForm.next.length < 6)
+      errs.next = "Minimal 6 karakter";
+    if (passwordForm.next !== passwordForm.confirm)
+      errs.confirm = "Konfirmasi tidak cocok";
     setPasswordErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -148,7 +149,10 @@ export default function ProfileForm() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({
+          currentPassword: passwordForm.current,
+          newPassword: passwordForm.next,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -162,9 +166,7 @@ export default function ProfileForm() {
         return;
       }
       setPasswordSuccess(true);
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
+      setPasswordForm({ current: "", next: "", confirm: "" });
       setTimeout(() => setPasswordSuccess(false), 2500);
     } catch {
       setPasswordErrors((p) => ({
@@ -187,392 +189,411 @@ export default function ProfileForm() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--user-bg)" }}>
-      {/* Header */}
-      <div className="pt-28 pb-4 px-6 md:px-10 max-w-5xl mx-auto">
-        <p
-          className="font-sans text-[9px] tracking-[0.35em] uppercase mb-3"
-          style={{ color: "var(--user-text-muted)" }}
-        >
-          Akun Saya
-        </p>
-        <h1
-          className="font-serif font-light leading-none"
-          style={{
-            fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
-            color: "var(--user-text)",
-          }}
-        >
-          Halo, <em className="italic">{user.fullName?.split(" ")[0]}</em>
-        </h1>
-      </div>
+      <PageHeader firstName={user.fullName?.split(" ")[0]} />
 
       <div className="max-w-5xl mx-auto px-6 md:px-10 py-10 md:py-14">
         <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-10 md:gap-16">
-          {/* ══════════════ Sidebar ══════════════ */}
-          <div>
-            {/* Avatar + info */}
-            <div className="flex md:flex-col items-center md:items-start gap-4 md:gap-0 mb-8 md:mb-10">
-              <div
-                className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center flex-shrink-0 md:mb-5"
-                style={{ background: "var(--user-text)" }}
-              >
-                <span
-                  className="font-serif font-light"
-                  style={{ fontSize: "1.8rem", color: "var(--user-bg)" }}
-                >
-                  {user.fullName?.charAt(0).toUpperCase() ?? "U"}
-                </span>
-              </div>
-              <div>
-                <p
-                  className="font-serif font-light text-lg leading-tight"
-                  style={{ color: "var(--user-text)" }}
-                >
-                  {user.fullName}
-                </p>
-                <p
-                  className="font-sans text-xs mt-1"
-                  style={{ color: "var(--user-text-muted)" }}
-                >
-                  {user.email}
-                </p>
-                {memberSince && (
-                  <p
-                    className="font-sans text-[9px] tracking-[0.15em] uppercase mt-2"
-                    style={{ color: "var(--user-text-faint)" }}
-                  >
-                    Member sejak {memberSince}
-                  </p>
-                )}
-              </div>
-            </div>
+          <Sidebar
+            user={user}
+            memberSince={memberSince}
+            activeTab={activeTab}
+            onChangeTab={setActiveTab}
+          />
 
-            {/* Tab nav */}
-            <div
-              className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible"
-              style={{
-                borderTop: "1px solid var(--user-border)",
-                paddingTop: 20,
-              }}
-            >
-              {[
-                { id: "data" as const, label: "Data Diri" },
-                { id: "security" as const, label: "Keamanan" },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className="text-left px-4 py-3 font-sans text-[10px] tracking-[0.15em] uppercase whitespace-nowrap transition-all duration-200"
-                  style={{
-                    background:
-                      activeTab === tab.id
-                        ? "var(--user-bg-alt)"
-                        : "transparent",
-                    color:
-                      activeTab === tab.id
-                        ? "var(--user-text)"
-                        : "var(--user-text-muted)",
-                    borderLeft: `2px solid ${activeTab === tab.id ? "var(--user-text)" : "transparent"}`,
-                  }}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ══════════════ Content ══════════════ */}
           <div>
-            {/* ── Tab: Data Diri ── */}
             {activeTab === "data" && (
-              <div>
-                <div className="mb-8">
-                  <h2
-                    className="font-serif font-light text-2xl mb-2"
-                    style={{ color: "var(--user-text)" }}
-                  >
-                    Data Diri
-                  </h2>
-                  <p
-                    className="font-sans text-sm"
-                    style={{ color: "var(--user-text-muted)" }}
-                  >
-                    Perbarui informasi kontak yang digunakan admin untuk
-                    menghubungi Anda.
-                  </p>
-                </div>
-
-                {errors.server && (
-                  <div
-                    className="mb-6 px-4 py-3 flex items-start gap-3"
-                    style={{
-                      background: "rgba(248,113,113,0.06)",
-                      border: "1px solid rgba(248,113,113,0.2)",
-                    }}
-                  >
-                    <p
-                      className="font-sans text-xs"
-                      style={{ color: "#f87171" }}
-                    >
-                      {errors.server}
-                    </p>
-                  </div>
-                )}
-
-                {success && (
-                  <div
-                    className="mb-6 px-4 py-3 flex items-center gap-3"
-                    style={{
-                      background: "rgba(74,124,90,0.06)",
-                      border: "1px solid rgba(74,124,90,0.2)",
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="#4a7c5a"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
-                    <p
-                      className="font-sans text-xs"
-                      style={{ color: "#4a7c5a" }}
-                    >
-                      Perubahan berhasil disimpan
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-6 max-w-md">
-                  <div>
-                    <label style={labelStyle}>Nama Lengkap</label>
-                    <input
-                      type="text"
-                      value={form.fullName}
-                      onChange={(e) => setField("fullName", e.target.value)}
-                      style={inputStyle(!!errors.fullName)}
-                    />
-                    {errors.fullName && (
-                      <p
-                        className="font-sans text-[10px] mt-1.5"
-                        style={{ color: "#f87171" }}
-                      >
-                        {errors.fullName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Email</label>
-                    <input
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => setField("email", e.target.value)}
-                      style={inputStyle(!!errors.email)}
-                    />
-                    {errors.email && (
-                      <p
-                        className="font-sans text-[10px] mt-1.5"
-                        style={{ color: "#f87171" }}
-                      >
-                        {errors.email}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Nomor HP / WhatsApp</label>
-                    <input
-                      type="tel"
-                      value={form.phone}
-                      onChange={(e) => setField("phone", e.target.value)}
-                      placeholder="081234567890"
-                      style={inputStyle(!!errors.phone)}
-                    />
-                    {errors.phone && (
-                      <p
-                        className="font-sans text-[10px] mt-1.5"
-                        style={{ color: "#f87171" }}
-                      >
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="mt-9 px-10 py-3.5 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
-                  style={{
-                    background: saving
-                      ? "var(--user-border)"
-                      : "var(--user-text)",
-                    color: saving ? "var(--user-text-muted)" : "var(--user-bg)",
-                    cursor: saving ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {saving ? "Menyimpan..." : "Simpan Perubahan"}
-                </button>
-              </div>
+              <DataTab
+                form={form}
+                errors={errors}
+                saving={saving}
+                success={success}
+                onChangeField={setField}
+                onSave={handleSave}
+              />
             )}
 
-            {/* ── Tab: Keamanan ── */}
             {activeTab === "security" && (
-              <div>
-                <div className="mb-8">
-                  <h2
-                    className="font-serif font-light text-2xl mb-2"
-                    style={{ color: "var(--user-text)" }}
-                  >
-                    Keamanan
-                  </h2>
-                  <p
-                    className="font-sans text-sm"
-                    style={{ color: "var(--user-text-muted)" }}
-                  >
-                    Perbarui password secara berkala untuk menjaga keamanan akun
-                    Anda.
-                  </p>
-                </div>
-
-                {passwordErrors.server && (
-                  <div
-                    className="mb-6 px-4 py-3"
-                    style={{
-                      background: "rgba(248,113,113,0.06)",
-                      border: "1px solid rgba(248,113,113,0.2)",
-                    }}
-                  >
-                    <p
-                      className="font-sans text-xs"
-                      style={{ color: "#f87171" }}
-                    >
-                      {passwordErrors.server}
-                    </p>
-                  </div>
-                )}
-
-                {passwordSuccess && (
-                  <div
-                    className="mb-6 px-4 py-3 flex items-center gap-3"
-                    style={{
-                      background: "rgba(74,124,90,0.06)",
-                      border: "1px solid rgba(74,124,90,0.2)",
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="#4a7c5a"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="m4.5 12.75 6 6 9-13.5"
-                      />
-                    </svg>
-                    <p
-                      className="font-sans text-xs"
-                      style={{ color: "#4a7c5a" }}
-                    >
-                      Password berhasil diubah
-                    </p>
-                  </div>
-                )}
-
-                <div className="space-y-6 max-w-md">
-                  <div>
-                    <label style={labelStyle}>Password Lama</label>
-                    <input
-                      type="password"
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      style={inputStyle(!!passwordErrors.currentPassword)}
-                    />
-                    {passwordErrors.currentPassword && (
-                      <p
-                        className="font-sans text-[10px] mt-1.5"
-                        style={{ color: "#f87171" }}
-                      >
-                        {passwordErrors.currentPassword}
-                      </p>
-                    )}
-                  </div>
-
-                  <div
-                    style={{
-                      borderTop: "1px solid var(--user-border)",
-                      paddingTop: 24,
-                    }}
-                  >
-                    <label style={labelStyle}>Password Baru</label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      style={inputStyle(!!passwordErrors.newPassword)}
-                    />
-                    {passwordErrors.newPassword && (
-                      <p
-                        className="font-sans text-[10px] mt-1.5"
-                        style={{ color: "#f87171" }}
-                      >
-                        {passwordErrors.newPassword}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label style={labelStyle}>Konfirmasi Password Baru</label>
-                    <input
-                      type="password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      style={inputStyle(!!passwordErrors.confirmPassword)}
-                    />
-                    {passwordErrors.confirmPassword && (
-                      <p
-                        className="font-sans text-[10px] mt-1.5"
-                        style={{ color: "#f87171" }}
-                      >
-                        {passwordErrors.confirmPassword}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleChangePassword}
-                  disabled={changingPassword}
-                  className="mt-9 px-10 py-3.5 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
-                  style={{
-                    background: changingPassword
-                      ? "var(--user-border)"
-                      : "var(--user-text)",
-                    color: changingPassword
-                      ? "var(--user-text-muted)"
-                      : "var(--user-bg)",
-                    cursor: changingPassword ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {changingPassword ? "Memproses..." : "Ubah Password"}
-                </button>
-              </div>
+              <SecurityTab
+                passwordForm={passwordForm}
+                onChangePasswordForm={setPasswordForm}
+                errors={passwordErrors}
+                submitting={changingPassword}
+                success={passwordSuccess}
+                onSubmit={handleChangePassword}
+              />
             )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// sapaan nama depan user di paling atas halaman
+function PageHeader({ firstName }: { firstName?: string }) {
+  return (
+    <div className="pt-28 pb-4 px-6 md:px-10 max-w-5xl mx-auto">
+      <p
+        className="font-sans text-[9px] tracking-[0.35em] uppercase mb-3"
+        style={{ color: "var(--user-text-muted)" }}
+      >
+        Akun Saya
+      </p>
+      <h1
+        className="font-serif font-light leading-none"
+        style={{
+          fontSize: "clamp(2rem, 4.5vw, 3.2rem)",
+          color: "var(--user-text)",
+        }}
+      >
+        Halo, <em className="italic">{firstName}</em>
+      </h1>
+    </div>
+  );
+}
+
+// avatar, info singkat, dan navigasi tab (data diri / keamanan)
+function Sidebar({
+  user,
+  memberSince,
+  activeTab,
+  onChangeTab,
+}: {
+  user: { fullName: string; email: string };
+  memberSince: string | null;
+  activeTab: "data" | "security";
+  onChangeTab: (tab: "data" | "security") => void;
+}) {
+  const tabs = [
+    { id: "data" as const, label: "Data Diri" },
+    { id: "security" as const, label: "Keamanan" },
+  ];
+
+  return (
+    <div>
+      <div className="flex md:flex-col items-center md:items-start gap-4 md:gap-0 mb-8 md:mb-10">
+        <div
+          className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center shrink-0 md:mb-5"
+          style={{ background: "var(--user-text)" }}
+        >
+          <span
+            className="font-serif font-light"
+            style={{ fontSize: "1.8rem", color: "var(--user-bg)" }}
+          >
+            {user.fullName?.charAt(0).toUpperCase() ?? "U"}
+          </span>
+        </div>
+        <div>
+          <p
+            className="font-serif font-light text-lg leading-tight"
+            style={{ color: "var(--user-text)" }}
+          >
+            {user.fullName}
+          </p>
+          <p
+            className="font-sans text-xs mt-1"
+            style={{ color: "var(--user-text-muted)" }}
+          >
+            {user.email}
+          </p>
+          {memberSince && (
+            <p
+              className="font-sans text-[9px] tracking-[0.15em] uppercase mt-2"
+              style={{ color: "var(--user-text-faint)" }}
+            >
+              Member sejak {memberSince}
+            </p>
+          )}
+        </div>
+      </div>
+
+      <div
+        className="flex md:flex-col gap-1 overflow-x-auto md:overflow-visible"
+        style={{ borderTop: "1px solid var(--user-border)", paddingTop: 20 }}
+      >
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onChangeTab(tab.id)}
+            className="text-left px-4 py-3 font-sans text-[10px] tracking-[0.15em] uppercase whitespace-nowrap transition-all duration-200"
+            style={{
+              background:
+                activeTab === tab.id ? "var(--user-bg-alt)" : "transparent",
+              color:
+                activeTab === tab.id
+                  ? "var(--user-text)"
+                  : "var(--user-text-muted)",
+              borderLeft: `2px solid ${activeTab === tab.id ? "var(--user-text)" : "transparent"}`,
+            }}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// form nama, email, nomor hp
+function DataTab({
+  form,
+  errors,
+  saving,
+  success,
+  onChangeField,
+  onSave,
+}: {
+  form: ProfileFormData;
+  errors: Partial<ProfileFormData> & { server?: string };
+  saving: boolean;
+  success: boolean;
+  onChangeField: (key: keyof ProfileFormData, value: string) => void;
+  onSave: () => void;
+}) {
+  return (
+    <div>
+      <div className="mb-8">
+        <h2
+          className="font-serif font-light text-2xl mb-2"
+          style={{ color: "var(--user-text)" }}
+        >
+          Data Diri
+        </h2>
+        <p
+          className="font-sans text-sm"
+          style={{ color: "var(--user-text-muted)" }}
+        >
+          Perbarui informasi kontak yang digunakan admin untuk menghubungi Anda.
+        </p>
+      </div>
+
+      {errors.server && <ErrorBanner message={errors.server} />}
+      {success && <SuccessBanner message="Perubahan berhasil disimpan" />}
+
+      <div className="space-y-6 max-w-md">
+        <FormField
+          label="Nama Lengkap"
+          value={form.fullName}
+          error={errors.fullName}
+          onChange={(v) => onChangeField("fullName", v)}
+        />
+        <FormField
+          label="Email"
+          type="email"
+          value={form.email}
+          error={errors.email}
+          onChange={(v) => onChangeField("email", v)}
+        />
+        <FormField
+          label="Nomor HP / WhatsApp"
+          type="tel"
+          value={form.phone}
+          error={errors.phone}
+          placeholder="081234567890"
+          onChange={(v) => onChangeField("phone", v)}
+        />
+      </div>
+
+      <SubmitButton
+        loading={saving}
+        label="Simpan Perubahan"
+        loadingLabel="Menyimpan..."
+        onClick={onSave}
+      />
+    </div>
+  );
+}
+
+// form password lama, baru, konfirmasi
+function SecurityTab({
+  passwordForm,
+  onChangePasswordForm,
+  errors,
+  submitting,
+  success,
+  onSubmit,
+}: {
+  passwordForm: { current: string; next: string; confirm: string };
+  onChangePasswordForm: (form: {
+    current: string;
+    next: string;
+    confirm: string;
+  }) => void;
+  errors: Record<string, string>;
+  submitting: boolean;
+  success: boolean;
+  onSubmit: () => void;
+}) {
+  const setField = (key: keyof typeof passwordForm, value: string) => {
+    onChangePasswordForm({ ...passwordForm, [key]: value });
+  };
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h2
+          className="font-serif font-light text-2xl mb-2"
+          style={{ color: "var(--user-text)" }}
+        >
+          Keamanan
+        </h2>
+        <p
+          className="font-sans text-sm"
+          style={{ color: "var(--user-text-muted)" }}
+        >
+          Perbarui password secara berkala untuk menjaga keamanan akun Anda.
+        </p>
+      </div>
+
+      {errors.server && <ErrorBanner message={errors.server} />}
+      {success && <SuccessBanner message="Password berhasil diubah" />}
+
+      <div className="space-y-6 max-w-md">
+        <FormField
+          label="Password Lama"
+          type="password"
+          value={passwordForm.current}
+          error={errors.current}
+          onChange={(v) => setField("current", v)}
+        />
+        <div
+          style={{ borderTop: "1px solid var(--user-border)", paddingTop: 24 }}
+        >
+          <FormField
+            label="Password Baru"
+            type="password"
+            value={passwordForm.next}
+            error={errors.next}
+            onChange={(v) => setField("next", v)}
+          />
+        </div>
+        <FormField
+          label="Konfirmasi Password Baru"
+          type="password"
+          value={passwordForm.confirm}
+          error={errors.confirm}
+          onChange={(v) => setField("confirm", v)}
+        />
+      </div>
+
+      <SubmitButton
+        loading={submitting}
+        label="Ubah Password"
+        loadingLabel="Memproses..."
+        onClick={onSubmit}
+      />
+    </div>
+  );
+}
+
+// satu baris input + label + pesan error, dipakai di kedua tab
+function FormField({
+  label,
+  value,
+  error,
+  onChange,
+  type = "text",
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  error?: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        style={inputStyle(!!error)}
+      />
+      {error && (
+        <p
+          className="font-sans text-[10px] mt-1.5"
+          style={{ color: "#f87171" }}
+        >
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// tombol submit di bawah form, teksnya berubah saat loading
+function SubmitButton({
+  loading,
+  label,
+  loadingLabel,
+  onClick,
+}: {
+  loading: boolean;
+  label: string;
+  loadingLabel: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className="mt-9 px-10 py-3.5 font-sans text-[10px] tracking-[0.3em] uppercase transition-all duration-300"
+      style={{
+        background: loading ? "var(--user-border)" : "var(--user-text)",
+        color: loading ? "var(--user-text-muted)" : "var(--user-bg)",
+        cursor: loading ? "not-allowed" : "pointer",
+      }}
+    >
+      {loading ? loadingLabel : label}
+    </button>
+  );
+}
+
+function ErrorBanner({ message }: { message: string }) {
+  return (
+    <div
+      className="mb-6 px-4 py-3 flex items-start gap-3"
+      style={{
+        background: "rgba(248,113,113,0.06)",
+        border: "1px solid rgba(248,113,113,0.2)",
+      }}
+    >
+      <p className="font-sans text-xs" style={{ color: "#f87171" }}>
+        {message}
+      </p>
+    </div>
+  );
+}
+
+function SuccessBanner({ message }: { message: string }) {
+  return (
+    <div
+      className="mb-6 px-4 py-3 flex items-center gap-3"
+      style={{
+        background: "rgba(74,124,90,0.06)",
+        border: "1px solid rgba(74,124,90,0.2)",
+      }}
+    >
+      <svg
+        width="14"
+        height="14"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="#4a7c5a"
+        strokeWidth={2}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m4.5 12.75 6 6 9-13.5"
+        />
+      </svg>
+      <p className="font-sans text-xs" style={{ color: "#4a7c5a" }}>
+        {message}
+      </p>
     </div>
   );
 }
