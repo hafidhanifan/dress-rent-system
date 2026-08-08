@@ -1,5 +1,4 @@
 // Server Component
-// ══════════════════════════════════════════════════
 
 import OrdersList from "./_components/OrdersList";
 
