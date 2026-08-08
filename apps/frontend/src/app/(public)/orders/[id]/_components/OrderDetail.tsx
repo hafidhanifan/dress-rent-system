@@ -43,25 +43,6 @@ type Order = {
   createdAt: string;
 };
 
-// snap dari midtrans tidak resmi punya types, jadi dideklarasikan manual
-type MidtransSnap = {
-  pay: (
-    token: string,
-    options: {
-      onSuccess: () => void;
-      onPending: () => void;
-      onError: () => void;
-      onClose: () => void;
-    },
-  ) => void;
-};
-
-declare global {
-  interface Window {
-    snap?: MidtransSnap;
-  }
-}
-
 const formatPrice = (n: number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
