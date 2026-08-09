@@ -2,7 +2,7 @@
 
 // src/app/(admin)/admin/categories/page.tsx
 // Setelah dipecah: hanya berisi state utama + tabel
-// Modal dipindah ke _components/
+// Modal dipindah ke _components
 
 import { useState, useEffect, useCallback } from "react";
 import CategoryModal, {
