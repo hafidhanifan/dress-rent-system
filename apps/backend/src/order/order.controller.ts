@@ -66,6 +66,16 @@ export class OrderController {
   }
 
   /**
+   * GET /orders/admin/dashboard-stats
+   * Ringkasan statistik untuk dashboard admin
+   */
+  @Get('admin/dashboard-stats')
+  @UseGuards(AdminGuard)
+  getDashboardStats() {
+    return this.orderService.getDashboardStats();
+  }
+
+  /**
    * GET /orders/admin/:id — detail pesanan tanpa cek kepemilikan, khusus admin
    */
   @Get('admin/:id')

@@ -127,6 +127,50 @@ export class OrderService {
     }));
   }
 
+  /**
+   * Ringkasan statistik untuk dashboard admin — revenue, order aktif,
+   * plus order yang butuh perhatian (perlu tindakan / telat dikembalikan)
+   */
+  async getDashboardStats() {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split('T')[0];
+    const today = now.toISOString().split('T')[0];
+
+    // revenue bulan ini — dari order yang statusnya sudah "dianggap bayar"
+    const revenueResult = await this.orderRepo
+      .createQueryBuilder('order')
+      .select('SUM(order.totalPrice)', 'total')
+      .where('order.status IN (:...statuses)', {
+        statuses: ['paid', 'confirmed', 'active', 'returned'],
+      })
+      .andWhere('order.createdAt >= :startOfMonth', { startOfMonth })
+      .getRawOne();
+
+    const activeOrders = await this.orderRepo.count({
+      where: { status: 'active' },
+    });
+
+    const needsAction = await this.orderRepo.count({
+      where: [{ status: 'paid' }, { status: 'confirmed' }],
+    });
+
+    // order aktif tapi endDate sudah lewat -> telat dikembalikan
+    const overdue = await this.orderRepo
+      .createQueryBuilder('order')
+      .where('order.status = :status', { status: 'active' })
+      .andWhere('order.endDate < :today', { today })
+      .getCount();
+
+    return {
+      monthlyRevenue: Number(revenueResult?.total ?? 0),
+      activeOrders,
+      needsAction,
+      overdue,
+    };
+  }
+
   /** Buat pesanan baru */
   async create(userId: number, dto: CreateOrderDto): Promise<Order> {
     // Cek dress ada dan available
