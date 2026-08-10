@@ -1,7 +1,5 @@
 "use client";
 
-// src/app/(admin)/admin/categories/_components/CategoryModal.tsx
-
 import { useState, useEffect } from "react";
 
 const GOLD = "var(--admin-accent)";

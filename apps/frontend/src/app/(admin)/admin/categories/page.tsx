@@ -1,8 +1,5 @@
 "use client";
 
-// src/app/(admin)/admin/categories/page.tsx
-// hanya berisi state utama + tabel, modal dipindah ke _components
-
 import { useState, useEffect, useCallback } from "react";
 import CategoryModal, {
   Category,
