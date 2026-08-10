@@ -1,8 +1,5 @@
 "use client";
 
-// src/app/(admin)/admin/products/page.tsx
-// hanya berisi state utama + tabel, modal dipindah ke _components/
-
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import DressModal from "./_components/DressModal";
@@ -373,7 +370,7 @@ function ErrorBanner({
   );
 }
 
-// 4 kartu ringkasan: total, tersedia, tidak tersedia, diarsipkan
+// 4 card ringkasan: total, tersedia, tidak tersedia, diarsipkan
 function StatsRow({
   dresses,
   loading,
