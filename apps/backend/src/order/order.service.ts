@@ -96,6 +96,37 @@ export class OrderService {
     return { ranges, stock, bufferDays: CLEANING_BUFFER_DAYS };
   }
 
+  /**
+   * Ambil semua order aktif (bukan cancelled) yang overlap dengan bulan
+   * tertentu — dipakai buat kalender visual admin lintas-dress
+   */
+  async getCalendarOrders(year: number, month: number) {
+    // month: 1-12. Hitung tanggal awal & akhir bulan itu
+    const startOfMonth = `${year}-${String(month).padStart(2, '0')}-01`;
+    const lastDay = new Date(year, month, 0).getDate();
+    const endOfMonth = `${year}-${String(month).padStart(2, '0')}-${lastDay}`;
+
+    const orders = await this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.dress', 'dress')
+      .leftJoinAndSelect('order.user', 'user')
+      .leftJoinAndSelect('order.size', 'size')
+      .where('order.status != :cancelled', { cancelled: 'cancelled' })
+      .andWhere('order.startDate <= :endOfMonth', { endOfMonth })
+      .andWhere('order.endDate >= :startOfMonth', { startOfMonth })
+      .getMany();
+
+    return orders.map((o) => ({
+      id: o.id,
+      startDate: o.startDate,
+      endDate: o.endDate,
+      status: o.status,
+      dressName: o.dress?.name ?? '—',
+      customerName: o.user?.fullName ?? '—',
+      sizeLabel: o.size?.label ?? null,
+    }));
+  }
+
   /** Buat pesanan baru */
   async create(userId: number, dto: CreateOrderDto): Promise<Order> {
     // Cek dress ada dan available

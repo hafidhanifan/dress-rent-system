@@ -53,6 +53,19 @@ export class OrderController {
   }
 
   /**
+   * GET /orders/admin/calendar?year=2026&month=8
+   * Ambil semua order aktif dalam 1 bulan, khusus admin
+   */
+  @Get('admin/calendar')
+  @UseGuards(AdminGuard)
+  getCalendarOrders(
+    @Query('year') year: string,
+    @Query('month') month: string,
+  ) {
+    return this.orderService.getCalendarOrders(Number(year), Number(month));
+  }
+
+  /**
    * GET /orders/admin/:id — detail pesanan tanpa cek kepemilikan, khusus admin
    */
   @Get('admin/:id')
