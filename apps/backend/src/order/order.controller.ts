@@ -75,6 +75,27 @@ export class OrderController {
     return this.orderService.getDashboardStats();
   }
 
+  /** GET /orders/admin/recent — 5 pesanan terbaru */
+  @Get('admin/recent')
+  @UseGuards(AdminGuard)
+  getRecentOrders() {
+    return this.orderService.getRecentOrders();
+  }
+
+  /** GET /orders/admin/top-products — dress paling sering disewa */
+  @Get('admin/top-products')
+  @UseGuards(AdminGuard)
+  getTopProducts() {
+    return this.orderService.getTopProducts();
+  }
+
+  /** GET /orders/admin/revenue-trend — revenue 7 hari terakhir */
+  @Get('admin/revenue-trend')
+  @UseGuards(AdminGuard)
+  getRevenueTrend() {
+    return this.orderService.getRevenueTrend();
+  }
+
   /**
    * GET /orders/admin/:id — detail pesanan tanpa cek kepemilikan, khusus admin
    */

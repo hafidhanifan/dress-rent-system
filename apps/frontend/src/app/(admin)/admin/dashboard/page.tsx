@@ -5,6 +5,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { getToken } from "@/lib/auth";
+import { statusCfg, OrderStatus } from "../orders/_components/StatusBadge";
 
 const BORDER = "var(--admin-border)";
 const CARD = "var(--admin-card-bg)";
@@ -16,36 +17,68 @@ type DashboardStats = {
   needsAction: number;
   overdue: number;
 };
+type RecentOrder = {
+  id: number;
+  dressName: string;
+  customerName: string;
+  status: OrderStatus;
+  totalPrice: number;
+  createdAt: string;
+};
+type TopProduct = { dressId: number; dressName: string; rentalCount: number };
+type RevenuePoint = { date: string; revenue: number };
 
 const formatPrice = (n: number) => `Rp ${Number(n).toLocaleString("id-ID")}`;
+const formatShortDate = (s: string) =>
+  new Date(s).toLocaleDateString("id-ID", { day: "numeric", month: "short" });
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [totalProducts, setTotalProducts] = useState<number | null>(null);
   const [totalCustomers, setTotalCustomers] = useState<number | null>(null);
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [revenueTrend, setRevenueTrend] = useState<RevenuePoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
+    const authHeader = { Authorization: `Bearer ${getToken()}` };
     try {
-      const [statsRes, dressesRes, customersRes] = await Promise.all([
-        fetch(`${API}/orders/admin/dashboard-stats`, {
-          headers: { Authorization: `Bearer ${getToken()}` },
-          cache: "no-store",
-        }),
-        fetch(`${API}/dresses`, { cache: "no-store" }),
-        fetch(`${API}/user/admin/all`, {
-          headers: { Authorization: `Bearer ${getToken()}` },
-          cache: "no-store",
-        }),
-      ]);
+      const [statsRes, dressesRes, customersRes, recentRes, topRes, trendRes] =
+        await Promise.all([
+          fetch(`${API}/orders/admin/dashboard-stats`, {
+            headers: authHeader,
+            cache: "no-store",
+          }),
+          fetch(`${API}/dresses`, { cache: "no-store" }),
+          fetch(`${API}/user/admin/all`, {
+            headers: authHeader,
+            cache: "no-store",
+          }),
+          fetch(`${API}/orders/admin/recent`, {
+            headers: authHeader,
+            cache: "no-store",
+          }),
+          fetch(`${API}/orders/admin/top-products`, {
+            headers: authHeader,
+            cache: "no-store",
+          }),
+          fetch(`${API}/orders/admin/revenue-trend`, {
+            headers: authHeader,
+            cache: "no-store",
+          }),
+        ]);
 
       if (statsRes.ok) setStats(await statsRes.json());
       if (dressesRes.ok) setTotalProducts((await dressesRes.json()).length);
       if (customersRes.ok)
         setTotalCustomers((await customersRes.json()).length);
+      if (recentRes.ok) setRecentOrders(await recentRes.json());
+      if (topRes.ok) setTopProducts(await topRes.json());
+      if (trendRes.ok) setRevenueTrend(await trendRes.json());
     } catch {
-      // gagal ambil data -> kartu tampil "—", tidak crash
+      // gagal ambil data -> bagian yang gagal tampil kosong, tidak crash
     } finally {
       setLoading(false);
     }
@@ -72,6 +105,16 @@ export default function DashboardPage() {
           overdue={stats.overdue}
         />
       )}
+
+      <RevenueTrendChart data={revenueTrend} loading={loading} />
+
+      <div
+        style={{ display: "grid", gridTemplateColumns: "1fr" }}
+        className="xl:grid-cols-[1fr_300px] gap-4"
+      >
+        <RecentOrdersTable orders={recentOrders} loading={loading} />
+        <TopProductsList products={topProducts} loading={loading} />
+      </div>
     </div>
   );
 }
@@ -105,7 +148,6 @@ function Greeting() {
   );
 }
 
-// 4 kartu statistik: revenue bulan ini, order aktif, total produk, total customer
 function StatsGrid({
   loading,
   stats,
@@ -174,7 +216,6 @@ function StatsGrid({
               }}
             />
           )}
-
           <div
             style={{
               display: "flex",
@@ -204,7 +245,6 @@ function StatsGrid({
               <path strokeLinecap="round" strokeLinejoin="round" d={c.icon} />
             </svg>
           </div>
-
           <p
             style={{
               fontFamily: "'Cormorant Garamond', serif",
@@ -222,7 +262,6 @@ function StatsGrid({
   );
 }
 
-// muncul kalau ada order yang butuh perhatian admin
 function AttentionBanner({
   needsAction,
   overdue,
@@ -253,7 +292,6 @@ function AttentionBanner({
           </p>
         </Link>
       )}
-
       {needsAction > 0 && (
         <Link
           href="/admin/orders"
@@ -274,6 +312,350 @@ function AttentionBanner({
             / kirim)
           </p>
         </Link>
+      )}
+    </div>
+  );
+}
+
+// grafik batang sederhana, revenue 7 hari terakhir
+function RevenueTrendChart({
+  data,
+  loading,
+}: {
+  data: RevenuePoint[];
+  loading: boolean;
+}) {
+  const maxRevenue = Math.max(...data.map((d) => d.revenue), 1);
+
+  return (
+    <div
+      style={{
+        background: CARD,
+        border: `1px solid ${BORDER}`,
+        borderRadius: 4,
+        padding: "20px",
+      }}
+    >
+      <p
+        style={{
+          fontFamily: "'Cormorant Garamond', serif",
+          fontSize: 16,
+          fontWeight: 300,
+          color: "var(--admin-text)",
+          marginBottom: 20,
+        }}
+      >
+        Revenue 7 Hari Terakhir
+      </p>
+
+      {loading ? (
+        <p style={{ fontSize: 12, color: "var(--admin-text-faint)" }}>
+          Memuat data...
+        </p>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-end",
+            gap: 10,
+            height: 120,
+          }}
+        >
+          {data.map((point) => (
+            <div
+              key={point.date}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 6,
+                height: "100%",
+              }}
+            >
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  alignItems: "flex-end",
+                  width: "100%",
+                }}
+              >
+                <div
+                  title={formatPrice(point.revenue)}
+                  style={{
+                    width: "100%",
+                    borderRadius: "3px 3px 0 0",
+                    height: `${Math.max((point.revenue / maxRevenue) * 100, 3)}%`,
+                    background:
+                      point.revenue > 0
+                        ? "var(--admin-accent)"
+                        : "var(--admin-border)",
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: 9, color: "var(--admin-text-faint)" }}>
+                {formatShortDate(point.date)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// tabel 5 pesanan terbaru
+function RecentOrdersTable({
+  orders,
+  loading,
+}: {
+  orders: RecentOrder[];
+  loading: boolean;
+}) {
+  return (
+    <div
+      style={{
+        background: CARD,
+        border: `1px solid ${BORDER}`,
+        borderRadius: 4,
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          padding: "16px 20px",
+          borderBottom: `1px solid ${BORDER}`,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <p
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 16,
+            fontWeight: 300,
+            color: "var(--admin-text)",
+          }}
+        >
+          Recent Orders
+        </p>
+        <Link
+          href="/admin/orders"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+            color: "var(--admin-text-faint)",
+            textDecoration: "none",
+          }}
+        >
+          View All →
+        </Link>
+      </div>
+
+      {loading ? (
+        <div style={{ padding: 32, textAlign: "center" }}>
+          <p style={{ fontSize: 12, color: "var(--admin-text-faint)" }}>
+            Memuat data...
+          </p>
+        </div>
+      ) : orders.length === 0 ? (
+        <div style={{ padding: 32, textAlign: "center" }}>
+          <p style={{ fontSize: 12, color: "var(--admin-text-faint)" }}>
+            Belum ada pesanan
+          </p>
+        </div>
+      ) : (
+        <div style={{ overflowX: "auto" }}>
+          <table
+            style={{ width: "100%", minWidth: 480, borderCollapse: "collapse" }}
+          >
+            <thead>
+              <tr>
+                {["Order", "Customer", "Product", "Status", "Amount"].map(
+                  (h) => (
+                    <th
+                      key={h}
+                      style={{
+                        padding: "10px 20px",
+                        textAlign: "left",
+                        fontSize: 9,
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                        color: "var(--admin-text-faint)",
+                        fontWeight: 400,
+                        borderBottom: `1px solid ${BORDER}`,
+                      }}
+                    >
+                      {h}
+                    </th>
+                  ),
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((o) => {
+                const cfg = statusCfg[o.status];
+                return (
+                  <tr
+                    key={o.id}
+                    style={{ borderBottom: `1px solid ${BORDER}` }}
+                  >
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        fontSize: 11,
+                        color: "var(--admin-text-faint)",
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      #{String(o.id).padStart(5, "0")}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        fontSize: 12,
+                        color: "var(--admin-text)",
+                      }}
+                    >
+                      {o.customerName}
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        fontSize: 11,
+                        color: "var(--admin-text-muted)",
+                      }}
+                    >
+                      {o.dressName}
+                    </td>
+                    <td style={{ padding: "12px 20px" }}>
+                      <span
+                        style={{
+                          fontSize: 9,
+                          letterSpacing: "0.1em",
+                          textTransform: "uppercase",
+                          padding: "3px 8px",
+                          borderRadius: 20,
+                          background: cfg.bg,
+                          color: cfg.color,
+                          border: `1px solid ${cfg.border}`,
+                        }}
+                      >
+                        {cfg.label}
+                      </span>
+                    </td>
+                    <td
+                      style={{
+                        padding: "12px 20px",
+                        fontSize: 12,
+                        color: "var(--admin-text)",
+                      }}
+                    >
+                      {formatPrice(o.totalPrice)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// list dress paling sering disewa
+function TopProductsList({
+  products,
+  loading,
+}: {
+  products: TopProduct[];
+  loading: boolean;
+}) {
+  const maxCount = Math.max(...products.map((p) => p.rentalCount), 1);
+
+  return (
+    <div
+      style={{
+        background: CARD,
+        border: `1px solid ${BORDER}`,
+        borderRadius: 4,
+      }}
+    >
+      <div
+        style={{ padding: "16px 20px", borderBottom: `1px solid ${BORDER}` }}
+      >
+        <p
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            fontSize: 16,
+            fontWeight: 300,
+            color: "var(--admin-text)",
+          }}
+        >
+          Top Products
+        </p>
+      </div>
+
+      {loading ? (
+        <div style={{ padding: 32, textAlign: "center" }}>
+          <p style={{ fontSize: 12, color: "var(--admin-text-faint)" }}>
+            Memuat data...
+          </p>
+        </div>
+      ) : products.length === 0 ? (
+        <div style={{ padding: 32, textAlign: "center" }}>
+          <p style={{ fontSize: 12, color: "var(--admin-text-faint)" }}>
+            Belum ada data penyewaan
+          </p>
+        </div>
+      ) : (
+        <div style={{ padding: "8px 0" }}>
+          {products.map((p, i) => (
+            <div
+              key={p.dressId}
+              style={{
+                padding: "14px 20px",
+                borderBottom:
+                  i < products.length - 1 ? `1px solid ${BORDER}` : "none",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <p style={{ fontSize: 12, color: "var(--admin-text)" }}>
+                  {p.dressName}
+                </p>
+                <p style={{ fontSize: 11, color: "var(--admin-accent)" }}>
+                  {p.rentalCount}×
+                </p>
+              </div>
+              <div
+                style={{
+                  height: 2,
+                  background: "var(--admin-border)",
+                  borderRadius: 2,
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${(p.rentalCount / maxCount) * 100}%`,
+                    background: "var(--admin-accent)",
+                    borderRadius: 2,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );

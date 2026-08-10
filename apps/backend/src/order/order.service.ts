@@ -171,6 +171,72 @@ export class OrderService {
     };
   }
 
+  /** 5 pesanan terbaru, buat tabel "Recent Orders" di dashboard */
+  async getRecentOrders(limit = 5) {
+    const orders = await this.orderRepo.find({
+      relations: ['dress', 'user'],
+      order: { createdAt: 'DESC' },
+      take: limit,
+    });
+    return orders.map((o) => ({
+      id: o.id,
+      dressName: o.dress?.name ?? '—',
+      customerName: o.user?.fullName ?? '—',
+      status: o.status,
+      totalPrice: o.totalPrice,
+      createdAt: o.createdAt,
+    }));
+  }
+
+  /** Dress paling sering disewa (bukan cancelled), buat "Top Products" */
+  async getTopProducts(limit = 5) {
+    const raw = await this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoin('order.dress', 'dress')
+      .select('dress.id', 'dressId')
+      .addSelect('dress.name', 'dressName')
+      .addSelect('COUNT(order.id)', 'rentalCount')
+      .where('order.status != :cancelled', { cancelled: 'cancelled' })
+      .groupBy('dress.id')
+      .addGroupBy('dress.name')
+      .orderBy('COUNT(order.id)', 'DESC')
+      .limit(limit)
+      .getRawMany();
+
+    return raw.map((r) => ({
+      dressId: Number(r.dressId),
+      dressName: r.dressName,
+      rentalCount: Number(r.rentalCount),
+    }));
+  }
+
+  /** Total revenue per hari, 7 hari terakhir — buat grafik kecil */
+  async getRevenueTrend(days = 7) {
+    const results: { date: string; revenue: number }[] = [];
+    const statuses = ['paid', 'confirmed', 'active', 'returned'];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const nextDateStr = new Date(date.getTime() + 86400000)
+        .toISOString()
+        .split('T')[0];
+
+      const raw = await this.orderRepo
+        .createQueryBuilder('order')
+        .select('SUM(order.totalPrice)', 'total')
+        .where('order.status IN (:...statuses)', { statuses })
+        .andWhere('order.createdAt >= :dateStr', { dateStr })
+        .andWhere('order.createdAt < :nextDateStr', { nextDateStr })
+        .getRawOne();
+
+      results.push({ date: dateStr, revenue: Number(raw?.total ?? 0) });
+    }
+
+    return results;
+  }
+
   /** Buat pesanan baru */
   async create(userId: number, dto: CreateOrderDto): Promise<Order> {
     // Cek dress ada dan available
