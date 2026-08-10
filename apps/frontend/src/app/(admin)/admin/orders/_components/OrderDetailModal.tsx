@@ -1,7 +1,5 @@
 "use client";
 
-// src/app/(admin)/admin/orders/_components/OrderDetailModal.tsx
-
 import { useState } from "react";
 import Image from "next/image";
 import StatusBadge, { OrderStatus } from "./StatusBadge";
