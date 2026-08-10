@@ -4,7 +4,9 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { Order } from '../order/order.entity';
 
 /**
  * @Entity('users') → TypeORM akan buat tabel bernama "users" di PostgreSQL
@@ -50,6 +52,9 @@ export class User {
    */
   @Column({ default: 'user' })
   role: 'user' | 'admin';
+
+  @OneToMany(() => Order, (order) => order.user)
+  orders: Order[];
 
   /**
    * Timestamp otomatis — TypeORM yang isi, kita tidak perlu input manual

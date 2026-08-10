@@ -132,4 +132,64 @@ export class UserService {
 
     return { message: 'Password berhasil diubah' };
   }
+
+  /**
+   * Ambil semua customer (role: user) beserta ringkasan order mereka.
+   * Khusus admin — dipakai halaman /admin/customers
+   */
+  async findAllCustomers() {
+    const users = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.orders', 'order')
+      .where('user.role = :role', { role: 'user' })
+      .orderBy('user.createdAt', 'DESC')
+      .getMany();
+
+    return users.map((user) => {
+      const orders = user.orders ?? [];
+      const paidOrders = orders.filter((o) =>
+        ['paid', 'confirmed', 'active', 'returned'].includes(o.status),
+      );
+      const totalSpent = paidOrders.reduce(
+        (sum, o) => sum + Number(o.totalPrice),
+        0,
+      );
+      const lastOrder = orders.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )[0];
+
+      return {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        phone: user.phone,
+        createdAt: user.createdAt,
+        totalOrders: orders.length,
+        totalSpent,
+        lastOrderDate: lastOrder?.createdAt ?? null,
+        lastOrderStatus: lastOrder?.status ?? null,
+      };
+    });
+  }
+
+  /**
+   * Ambil detail 1 customer beserta SEMUA order lengkap (bukan cuma ringkasan).
+   * Khusus admin — dipakai halaman detail /admin/customers/:id
+   */
+  async findCustomerDetail(id: number) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.orders', 'order')
+      .leftJoinAndSelect('order.dress', 'dress')
+      .leftJoinAndSelect('order.size', 'size')
+      .where('user.id = :id', { id })
+      .andWhere('user.role = :role', { role: 'user' })
+      .orderBy('order.createdAt', 'DESC')
+      .getOne();
+
+    if (!user) throw new NotFoundException('Customer tidak ditemukan');
+
+    return user;
+  }
 }
