@@ -19,7 +19,7 @@ export default function DeleteCategoryModal({
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
 
-  const handle = async () => {
+  const handleDelete = async () => {
     setDeleting(true);
     const err = await onConfirm();
     if (err) {
@@ -56,34 +56,7 @@ export default function DeleteCategoryModal({
           boxShadow: "0 24px 80px rgba(0,0,0,0.3)",
         }}
       >
-        <div
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            marginBottom: 16,
-            background: "rgba(248,113,113,0.08)",
-            border: "1px solid rgba(248,113,113,0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <svg
-            width="18"
-            height="18"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="#f87171"
-            strokeWidth={1.5}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-            />
-          </svg>
-        </div>
+        <WarningIcon />
 
         <h3
           style={{
@@ -140,7 +113,7 @@ export default function DeleteCategoryModal({
             Batal
           </button>
           <button
-            onClick={handle}
+            onClick={handleDelete}
             disabled={deleting}
             style={{
               background: deleting
@@ -161,6 +134,40 @@ export default function DeleteCategoryModal({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// icon segitiga peringatan di lingkaran merah muda
+function WarningIcon() {
+  return (
+    <div
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: "50%",
+        marginBottom: 16,
+        background: "rgba(248,113,113,0.08)",
+        border: "1px solid rgba(248,113,113,0.2)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <svg
+        width="18"
+        height="18"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="#f87171"
+        strokeWidth={1.5}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+        />
+      </svg>
     </div>
   );
 }
