@@ -718,6 +718,3 @@ function HeartIcon({ size, filled }: { size: number; filled: boolean }) {
     </svg>
   );
 }
-
-// testing
-// menampilkan detail dress
