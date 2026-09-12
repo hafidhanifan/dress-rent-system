@@ -720,3 +720,4 @@ function HeartIcon({ size, filled }: { size: number; filled: boolean }) {
 }
 
 // testing
+// menampilkan detail dress
